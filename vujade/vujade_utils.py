@@ -31,7 +31,7 @@ import torch
 from vujade import vujade_debug as debug_
 
 
-class MainMemoryProfilerCPU:
+class MainMemoryProfiler:
     def __init__(self, _pid=None):
         if _pid is None:
             self.proc = getpid()
