@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 13, 2020.
+Date: Sep. 18, 2020.
 
 Title: vujade_utils.py
-Version: 0.1
+Version: 0.1.1
 Description: Useful utils
 
 Acknowledgement: This implementation is highly inspired from Berkeley CS188.
