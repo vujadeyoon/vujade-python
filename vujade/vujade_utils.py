@@ -2,7 +2,7 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 18, 2020.
+Date: Sep. 20, 2020.
 
 Title: vujade_utils.py
 Version: 0.1.1
@@ -31,62 +31,14 @@ import torch
 from vujade import vujade_debug as debug_
 
 
-class MainMemoryProfiler:
-    def __init__(self, _pid=None):
-        if _pid is None:
-            self.proc = getpid()
-        else:
-            self.proc = _pid
-
-        self.memory_bytes_prev = self.proc.memory_info().rss
-        self.memory_bytes_curr = 0.0
-        self.memory_variation = None
-
-    def run(self, _is_print=False, _is_pause=False):
-        self.memory_bytes_curr = self.proc.memory_info().rss
-        self._update()
-
-        if _is_print is True:
-            debug_.debug(_print_str='Total memory [GB]: {:.2f}, Memory variation: {}.'.format(self.memory_bytes_curr / (1024 ** 3), self.memory_variation), _is_pause=_is_pause)
-
-        return self.memory_bytes_prev # == self.memory_bytes_curr
-
-    def _update(self):
-        if self.memory_bytes_prev < self.memory_bytes_curr:
-            self.memory_variation = 'Increase'
-        elif self.memory_bytes_prev > self.memory_bytes_curr:
-            self.memory_variation = 'Decrease'
-        else:
-            self.memory_variation = 'Same'
-
-        self.memory_bytes_prev = self.memory_bytes_curr
-
-
 def getpid():
-    return psutil.Process(os.getpid())
+    return os.getpid()
+
+
+def getproc(_pid=getpid()):
+    return psutil.Process(_pid)
 
   
-def get_gpu_memory_map():
-    """Get the current gpu usage.
-
-    Returns
-    -------
-    usage: dict
-        Keys are device ids as integers.
-        Values are memory usage as integers in MB.
-    """
-    result = subprocess.check_output(
-        [
-            'nvidia-smi', '--query-gpu=memory.used',
-            '--format=csv,nounits,noheader'
-        ], encoding='utf-8')
-    # Convert lines into a dictionary
-    gpu_memory = [int(x) for x in result.strip().split('\n')]
-    gpu_memory_map = dict(zip(range(len(gpu_memory)), gpu_memory))
-
-    return gpu_memory_map
-
-
 class AverageMeterTime:
     def __init__(self, _warmup=0):
         self.warmup = _warmup
