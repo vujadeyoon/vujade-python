@@ -2,14 +2,15 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 13, 2020.
+Date: Sep. 27, 2020.
 
 Title: vujade_videocv.py
-Version: 0.1
+Version: 0.1.1
 Description: A module for video processing with computer vision.
 """
 
 
+import os
 import numpy as np
 import math
 import cv2
@@ -101,18 +102,48 @@ class VideoWriterFFmpeg:
 
 
 class VideoReaderCV:
-    def __init__(self, _path_video):
+    def __init__(self, _path_video, _sec_start=None, _sec_end=None):
         if _path_video is None:
-            raise Exception('The variable, _path_video, should be assigned.')
+            raise Exception('The parameter, _path_video, should be assigned.')
+
+        if (_sec_start is not None) and (isinstance(_sec_start, int) is False):
+            raise Exception('The parameter, _sec_start, should be None or integer.')
+
+        if (_sec_end is not None) and (isinstance(_sec_end, int) is False):
+            raise Exception('The parameter, _sec_end, should be None or integer.')
+
+        if (isinstance(_sec_start, int) is True) and (isinstance(_sec_end, int) is True) and (_sec_start >= _sec_end):
+            raise Exception('The parameter _sec_start should be lower than the parameter _sec_end.')
 
         self.path_video = _path_video
         self.cap = self._open()
         self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.fps = float(self.cap.get(cv2.CAP_PROP_FPS))
-        self.num_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.idx_frame_curr = -1
-        self.is_not_eof = True
+        self.num_frames_ori = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.length_ori = int(self.num_frames_ori / self.fps)
+
+        if (_sec_end is not None) and (self.length_ori <= _sec_end):
+            _sec_end = None
+
+        if (_sec_start is None) or ((_sec_start is not None) and (_sec_start < 0)):
+            self.frame_start = 0
+            self.sec_start = 0
+        else:
+            self.sec_start = _sec_start
+            self.frame_start = int(self.sec_start * self.fps)
+
+        if (_sec_end is None) or ((_sec_end is not None) and (_sec_end < 0)):
+            self.frame_end = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
+            self.sec_end = int(self.frame_end / self.fps)
+        else:
+            self.sec_end = _sec_end
+            self.frame_end = int(self.sec_end * self.fps)
+
+        self.num_frames = self.frame_end - self.frame_start + 1
+        self._set(_idx_frame=self.frame_start-1)
+        self.frame_timestamps = []
+        self.is_eof = False
 
     def _is_open(self):
         return self.cap.isOpened()
@@ -126,16 +157,15 @@ class VideoReaderCV:
         return self.cap
 
     def _cal_eof(self):
-        self.is_not_eof = (self.idx_frame_curr != (self.num_frames - 1))
-
+        self.is_eof = (self.idx_frame_curr >= self.frame_end)
 
     def _set(self, _idx_frame):
         '''
-        :param _idx_frame: Interval: [0, self.num_frames-1]
+        :param _idx_frame: Interval: [0, self.frame_end-1]
         '''
 
-        if self.num_frames <= _idx_frame:
-            raise ValueError('The parameter, _idx_frame, should be lower than _idx_frame.')
+        if self.frame_end <= _idx_frame:
+            raise ValueError('The parameter, _idx_frame, should be lower than self.frame_end.')
 
         self.cap.set(cv2.CAP_PROP_FRAME_COUNT, _idx_frame)
         self.idx_frame_curr = _idx_frame
@@ -143,17 +173,22 @@ class VideoReaderCV:
 
     def _read(self):
         ret, frame = self.cap.read()
+        self._timestamps()
         self.idx_frame_curr += 1
         self._cal_eof()
 
         return frame
 
+    def _timestamps(self):
+        self.frame_timestamps.append(self.cap.get(cv2.CAP_PROP_POS_MSEC))
+
     def imread(self, _num_batch_frames=1, _trans=(0, 3, 1, 2), _set_idx_frame=None):
         if _set_idx_frame is not None:
             self._set(_set_idx_frame)
 
+        frames = None
         for idy in range(_num_batch_frames):
-            if self.is_not_eof is False:
+            if self.is_eof is True:
                 break
 
             frame_src = np.expand_dims(self._read(), axis=0)
@@ -193,4 +228,7 @@ class VideoWriterCV:
 
     def close(self):
         self.wri.release()
-        
+
+
+def encode_vid2vid(_path_video_src, _path_video_dst):
+    os.system('ffmpeg -i {} {}'.format(_path_video_src, _path_video_dst))

@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 13, 2020.
+Date: Sep. 27, 2020.
 
 Title: vujade_imgcv.py
-Version: 0.1
+Version: 0.1.1
 Description: A module for image processing and computer vision
              (Commented codes need to be checked because they may not be compatible with the current version.)
 """
@@ -38,8 +38,11 @@ class _ImwriterMP(multiprocess_._BaseMultiProcess):
 
     def proc_enqueue(self, _list_img, _path_img, _list_postfix_num=None, _img_extension='.png'):
         # Todo: To be coded.
+        if _list_postfix_num is None:
+            _list_postfix_num = [None] * len(_list_img)
+
         for idx, (img, postfix_num) in enumerate(zip(_list_img, _list_postfix_num)):
-            if _list_postfix_num is None:
+            if postfix_num is None:
                 path = '{}{}'.format(_path_img, _img_extension)
             else:
                 path = _path_img.replace(_img_extension, '_{:08d}{}'.format(postfix_num, _img_extension))
@@ -52,7 +55,7 @@ class ImwriterMP(_ImwriterMP):
         super(ImwriterMP, self).__init__(_num_proc=_num_proc)
         self._proc_setup()
 
-    def imwrite(self, _list_img, _path_img, _list_postfix_num, _img_extension):
+    def imwrite(self, _list_img, _path_img, _list_postfix_num, _img_extension='.png'):
         self.proc_enqueue(_list_img=_list_img, _path_img=_path_img, _list_postfix_num=_list_postfix_num, _img_extension=_img_extension)
 
     def close(self):
