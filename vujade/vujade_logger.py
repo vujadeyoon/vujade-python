@@ -2,21 +2,22 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 13, 2020.
+Date: Oct. 5, 2020.
 
 Title: vujade_logger.py
-Version: 0.1
+Version: 0.1.1
 Description: A module for logger
 """
 
 
+import sys
 import logging
 import logging.handlers
 from colorlog import ColoredFormatter
 
-class vujade_logger():
+
+class vujade_logger:
     def __init__(self, _filename, _mode='a', _fmt='[%(asctime)s] [%(levelname)s (%(process)s)]: %(message)s', _level=logging.DEBUG):
-        super(vujade_logger, self).__init__()
         self.filename = _filename
         self.mode = _mode
         self.fmt = _fmt
@@ -50,3 +51,19 @@ class vujade_logger():
         if not self.logger.handlers:
             self.logger.addHandler(hdlr=fileHandler)
             self.logger.addHandler(hdlr=streamHandler)
+
+
+class vujade_print2logger:
+    def __init__(self, _path_log, _mode='a'):
+        self.path_log = _path_log
+        self.mode = _mode
+        self._run()
+
+    def _run(self):
+        self.stdout_ori = sys.stdout
+        self.fp_log = open(self.path_log, self.mode)
+        sys.stdout = self.fp_log
+
+    def close(self):
+        sys.stdout = self.stdout_ori
+        self.fp_log.close()
