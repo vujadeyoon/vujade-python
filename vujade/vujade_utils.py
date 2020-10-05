@@ -38,7 +38,6 @@ def get_command_cli(_prefix='python3 '):
 
     return command
 
-
 def bit2bool(_num, _n_bit):
     return ((_num >> _n_bit) & 1 == True)
 
