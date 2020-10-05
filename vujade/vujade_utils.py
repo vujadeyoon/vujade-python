@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 20, 2020.
+Date: Oct. 5, 2020.
 
 Title: vujade_utils.py
-Version: 0.1.1
+Version: 0.1.2
 Description: Useful utils
 
 Acknowledgement: This implementation is highly inspired from Berkeley CS188.
@@ -30,6 +30,17 @@ from itertools import compress
 import torch
 from vujade import vujade_debug as debug_
 
+
+def get_command_cli(_prefix='python3 '):
+    command = _prefix
+    for idx, command_argv in enumerate(sys.argv):
+        command += (command_argv + ' ')
+
+    return command
+
+
+def bit2bool(_num, _n_bit):
+    return ((_num >> _n_bit) & 1 == True)
 
 def getpid():
     return os.getpid()
