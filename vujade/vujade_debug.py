@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 20, 2020.
+Date: Oct. 7, 2020.
 
 Title: vujade_debug.py
-Version: 0.1.1
+Version: 0.1.2
 Description: A module for debug
 """
 
@@ -87,8 +87,10 @@ class MainMemoryProfiler(DEBUG):
 class GPUMemoryProfiler(DEBUG):
     def __init__(self, _pid=None):
         super().__init__()
-
-        self.pid = str(utils_.getpid())
+        
+        if _pid is None:
+            _pid = str(utils_.getpid())
+        self.pid = _pid
         self.mem_total = self._get_mem_total()
         self.mem_mb_prev = self._get_mem()
         self.mem_mb_curr = 0.0
