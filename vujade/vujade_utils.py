@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Oct. 5, 2020.
+Date: Oct. 18, 2020.
 
 Title: vujade_utils.py
-Version: 0.1.2
+Version: 0.1.3
 Description: Useful utils
 
 Acknowledgement: This implementation is highly inspired from Berkeley CS188.
@@ -22,13 +22,17 @@ import os
 import psutil
 import glob
 import pickle
-import statistics
 import numpy as np
 import scipy
+import signal
+import time
 from itertools import product
 from itertools import compress
 import torch
-from vujade import vujade_debug as debug_
+
+
+def get_env_var(_name_var):
+    return os.environ.get(_name_var, '')
 
 
 def get_command_cli(_prefix='python3 '):
@@ -38,8 +42,10 @@ def get_command_cli(_prefix='python3 '):
 
     return command
 
+
 def bit2bool(_num, _n_bit):
     return ((_num >> _n_bit) & 1 == True)
+
 
 def getpid():
     return os.getpid()
@@ -47,65 +53,6 @@ def getpid():
 
 def getproc(_pid=getpid()):
     return psutil.Process(_pid)
-
-  
-class AverageMeterTime:
-    def __init__(self, _warmup=0):
-        self.warmup = _warmup
-        self.cnt_call = 0
-        self.time_list = []
-        self.time_sum = 0.0
-        self.time_avg = 0.0
-
-    def tic(self):
-        self.time_start = time.time()
-
-    def toc(self):
-        self.time_end = time.time()
-        self.cnt_call += 1
-
-        if self.warmup < self.cnt_call:
-            self._update()
-
-    def _update(self):
-        self.time_list.append(self.time_end - self.time_start)
-        self.time_len = len(self.time_list)
-        self.time_sum = sum(self.time_list)
-        self.time_avg = statistics.mean(self.time_list)
-        self.fps_avg = 1 / statistics.mean(self.time_list)
-
-
-class AverageMeterValue:
-    def __init__(self, **kwargs):
-        self.cnt_call = 0
-        self.keys = list(kwargs.keys())
-        self.len = len(self.keys)
-        self.ndarr_vals_add = np.zeros(shape=(1, self.len), dtype=np.float32)
-
-    def add(self, **kwargs):
-        keys_add = list(kwargs.keys())
-        vals_add = list(kwargs.values())
-
-        if self.keys != keys_add:
-            raise ValueError('The input values for dict_keys may be incorrect.')
-
-        self._update(_vals_add=vals_add)
-
-    def _update(self, _vals_add):
-        for idx, add_val in enumerate(_vals_add):
-            self.ndarr_vals_add[0, idx] = add_val
-
-        if self.cnt_call == 0:
-            self.ndarr_vals = self.ndarr_vals_add.copy()
-        else:
-            self.ndarr_vals = np.append(self.ndarr_vals, self.ndarr_vals_add, axis=0)
-
-        self.ndarr_vals_sum = self.ndarr_vals.sum(axis=0)
-        self.ndarr_vals_avg = self.ndarr_vals.mean(axis=0)
-        self.ndarr_vals_max = self.ndarr_vals.max(axis=0)
-        self.ndarr_vals_min = self.ndarr_vals.min(axis=0)
-
-        self.cnt_call += 1
 
 
 def str2bool(_v):
@@ -859,8 +806,6 @@ def lookup(name, namespace):
 # of active time outs.  Currently, questions which have test cases calling
 # this have all student code so wrapped.
 #
-import signal
-import time
 
 
 class TimeoutFunctionException(Exception):

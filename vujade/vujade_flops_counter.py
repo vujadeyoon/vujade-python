@@ -5,7 +5,7 @@ Github: https://github.com/vujadeyoon/vujade
 Date: Sep. 13, 2020.
 
 Title: vujade_flops_conuter.py
-Version: 0.1
+Version: 0.1.0
 Description: A module to count flops of a DNN model
 
 Acknowledgement:

@@ -5,7 +5,7 @@ Github: https://github.com/vujadeyoon/vujade
 Date: Sep. 13, 2020.
 
 Title: vujade_transforms.py
-Version: 0.1
+Version: 0.1.0
 Description: A module for transformation
 
 Acknowledgement:
@@ -19,7 +19,7 @@ import numpy as np
 import random
 import cv2
 import torch
-from imgaug import augmenters as iaa
+# from imgaug import augmenters as iaa
 from vujade import vujade_imgcv as imgcv_
 from vujade import vujade_utils as utils_
 

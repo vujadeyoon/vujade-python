@@ -2,7 +2,7 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Oct. 7, 2020.
+Date: Oct. 18, 2020.
 
 Title: vujade_debug.py
 Version: 0.1.2
@@ -11,11 +11,9 @@ Description: A module for debug
 
 
 import os
-import psutil
 import re
 import traceback
 import torch
-import subprocess
 from vujade import vujade_utils as utils_
 
 
@@ -43,107 +41,6 @@ class DEBUG:
                 return True
 
         return False
-
-
-class MainMemoryProfiler(DEBUG):
-    def __init__(self, _pid=None):
-        super().__init__()
-
-        self.proc = utils_.getproc(_pid=_pid)
-        self.mem_mb_prev = self.proc.memory_info().rss / (2.0 ** 20) # == self.proc.memory_info()[0] / (2.0 ** 20), MB
-        self.mem_mb_curr = 0.0
-        self.mem_desc = None
-        self.mem_variation = 0.0
-        self.mem_percent_curr = 0.0
-
-    def run(self, _is_print=False, _is_pause=False):
-        if _is_pause is True:
-            _print = input
-        else:
-            _print = print
-
-        self.get_file_line()
-        self._update()
-
-        info_mem = 'Main memory: {:8.2f} MB ({:6.2f} %), Memory variation: [{}] {:8.2f} MB.'.format(self.mem_mb_prev, self.mem_percent_curr, self.mem_desc.ljust(8), self.mem_variation)
-        info_trace = '[{}: {}] '.format(self.fileName, self.lineNumber) + info_mem
-        _print(info_trace)
-
-    def _update(self):
-        self.mem_mb_curr = self.proc.memory_info().rss / (2.0 ** 20) # MB
-        self.mem_percent_curr = dict(psutil.virtual_memory()._asdict())['percent']
-
-        if self.mem_mb_prev < self.mem_mb_curr:
-            self.mem_desc = 'Increase'
-        elif self.mem_mb_prev > self.mem_mb_curr:
-            self.mem_desc = 'Decrease'
-        else:
-            self.mem_desc = 'Same'
-
-        self.mem_variation = self.mem_mb_curr - self.mem_mb_prev # MB
-        self.mem_mb_prev = self.mem_mb_curr
-
-
-class GPUMemoryProfiler(DEBUG):
-    def __init__(self, _pid=None):
-        super().__init__()
-        
-        if _pid is None:
-            _pid = str(utils_.getpid())
-        self.pid = _pid
-        self.mem_total = self._get_mem_total()
-        self.mem_mb_prev = self._get_mem()
-        self.mem_mb_curr = 0.0
-        self.mem_desc = None
-        self.mem_variation = 0.0
-        self.mem_percent_curr = 100 * (self.mem_mb_prev / self.mem_total)
-
-    def run(self, _is_print=False, _is_pause=False):
-        if _is_pause is True:
-            _print = input
-        else:
-            _print = print
-
-        self.get_file_line()
-        self._update()
-
-        info_mem = 'GPU  memory: {:8.2f} MB ({:6.2f} %), Memory variation: [{}] {:8.2f} MB.'.format(self.mem_mb_prev, self.mem_percent_curr, self.mem_desc.ljust(8), self.mem_variation)
-        info_trace = '[{}: {}] '.format(self.fileName, self.lineNumber) + info_mem
-        _print(info_trace)
-
-    def _update(self):
-        self.mem_mb_curr = self._get_mem() # Byte
-        self.mem_percent_curr = 100 * (self.mem_mb_curr / self.mem_total)
-
-        if self.mem_mb_prev < self.mem_mb_curr:
-            self.mem_desc = 'Increase'
-        elif self.mem_mb_prev > self.mem_mb_curr:
-            self.mem_desc = 'Decrease'
-        else:
-            self.mem_desc = 'Same'
-
-        self.mem_variation = self.mem_mb_curr - self.mem_mb_prev # MB
-        self.mem_mb_prev = self.mem_mb_curr
-
-    def _get_gpustat(self):
-        return str(subprocess.run(['gpustat', '-cp'], stdout=subprocess.PIPE).stdout)
-
-    def _get_mem_total(self):
-        gpustat = self._get_gpustat()
-
-        return float(gpustat[gpustat.find('/') + 2:gpustat.find('MB') - 1]) # MB
-
-    def _get_mem(self):
-        gpustat = self._get_gpustat()
-        gpustat_info = gpustat[gpustat.find(self.pid):]
-        mem = gpustat_info[gpustat_info.find('(') + 1:gpustat_info.find('M')]
-
-        if mem == '':
-            res = 0
-        else:
-            res = float(gpustat_info[gpustat_info.find('(') + 1:gpustat_info.find('M')])  # MB
-
-        return res
 
 
 def debug(_print_str='', _var=None, _is_print_full=False, _is_pause=True, _num_ljust=15):

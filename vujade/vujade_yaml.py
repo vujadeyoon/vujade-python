@@ -5,7 +5,7 @@ Github: https://github.com/vujadeyoon/vujade
 Date: Sep. 21, 2020.
 
 Title: vujade_videocv.py
-Version: 0.1
+Version: 0.1.0
 Description: A module for yaml.
 """
 

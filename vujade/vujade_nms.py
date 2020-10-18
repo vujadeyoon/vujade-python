@@ -6,7 +6,7 @@ Date: Sep. 13, 2020.
 
 
 Title: vujade_nms.py
-Version: 0.1
+Version: 0.1.0
 Description: A module for Non-Maximum Suppression (NMS)
 """
 

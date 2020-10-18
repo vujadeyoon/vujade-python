@@ -5,7 +5,7 @@ Github: https://github.com/vujadeyoon/vujade
 Date: Sep. 13, 2020.
 
 Title: vujade_loss.py
-Version: 0.1
+Version: 0.1.0
 Description: A module for loss
 """
 
@@ -61,8 +61,6 @@ class L1loss_sobel():
 
         self.sobel_kernel_x = trans_._tondarr(_tensor=sobel_kernel_x.reshape((1, 3, 3, 3))).to(self.device)
         self.sobel_kernel_y = trans_._tondarr(_tensor=sobel_kernel_y.reshape((1, 3, 3, 3))).to(self.device)
-
-
 
     def forward(self, _input, _ref):
         input_grad_x = F.conv2d(_input, self.sobel_kernel_x, bias=None, stride=1, padding=0, dilation=1, groups=1)

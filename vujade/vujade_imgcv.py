@@ -19,8 +19,8 @@ import pywt
 from vujade import vujade_utils as utils_
 from vujade import vujade_transforms as trans_
 from vujade import vujade_multiprocess as multiprocess_
-import cv2.ximgproc as ximgproc
-from external_library.guided_filter.core.filter import GuidedFilter
+# import cv2.ximgproc as ximgproc
+# from external_library.guided_filter.core.filter import GuidedFilter
 
 
 class _ImwriterMP(multiprocess_._BaseMultiProcess):

@@ -141,7 +141,7 @@ class VideoReaderCV:
             self.frame_end = int(self.sec_end * self.fps)
 
         self.num_frames = self.frame_end - self.frame_start + 1
-        self._set(_idx_frame=self.frame_start-1)
+        self._set(_idx_frame=self.frame_start - 1)
         self.frame_timestamps = []
         self.is_eof = False
 

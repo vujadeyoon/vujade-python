@@ -2,12 +2,17 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 13, 2020.
+Date: Oct. 18, 2020.
 
 Title: vujade_datastructure.py
-Version: 0.1
+Version: 0.1.1
 Description: A collection of data structure
 """
+
+
+def enum(*sequential, **named):
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
 
 
 class stack(list):

@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Oct. 5, 2020.
+Date: Oct. 18, 2020.
 
 Title: vujade_logger.py
-Version: 0.1.1
+Version: 0.1.2
 Description: A module for logger
 """
 
@@ -34,11 +34,13 @@ class vujade_logger:
     def get_logger(self):
         self.logger = logging.getLogger(name=__name__)
         self.logger.setLevel(level=self.level)
+        self.logger_warnings = logging.getLogger("py.warnings")
         self._set_handler()
 
         return self.logger
 
     def _set_handler(self):
+        logging.captureWarnings(True)
         formatter_file = logging.Formatter(fmt=self.fmt)
         formatter_stream = ColoredFormatter(fmt='%(log_color)s' + self.fmt, log_colors=self.log_colors)
 
@@ -48,9 +50,10 @@ class vujade_logger:
         fileHandler.setFormatter(fmt=formatter_file)
         streamHandler.setFormatter(fmt=formatter_stream)
 
-        if not self.logger.handlers:
-            self.logger.addHandler(hdlr=fileHandler)
-            self.logger.addHandler(hdlr=streamHandler)
+        self.logger.addHandler(hdlr=fileHandler)
+        self.logger.addHandler(hdlr=streamHandler)
+        self.logger_warnings.addHandler(hdlr=fileHandler)
+        self.logger_warnings.addHandler(hdlr=streamHandler)
 
 
 class vujade_print2logger:
