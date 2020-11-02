@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Oct. 18, 2020.
+Date: Nov. 2, 2020.
 
 Title: vujade_utils.py
-Version: 0.1.3
+Version: 0.1.4
 Description: Useful utils
 
 Acknowledgement: This implementation is highly inspired from Berkeley CS188.
@@ -29,6 +29,10 @@ import time
 from itertools import product
 from itertools import compress
 import torch
+
+
+def is_ndarr(_var):
+    return isinstance(_var, (np.ndarray, np.generic))
 
 
 def get_env_var(_name_var):

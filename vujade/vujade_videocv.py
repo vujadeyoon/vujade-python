@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 27, 2020.
+Date: Nov. 2, 2020.
 
 Title: vujade_videocv.py
-Version: 0.1.1
+Version: 0.1.2
 Description: A module for video processing with computer vision.
 """
 
@@ -15,6 +15,7 @@ import numpy as np
 import math
 import cv2
 import ffmpeg
+from vujade.utils.SceneChangeDetection import cy_scd
 
 
 class VideoReaderFFmpeg:
@@ -71,13 +72,13 @@ class VideoReaderFFmpeg:
 
 
 class VideoWriterFFmpeg:
-    def __init__(self, _path_video, _resolution=(1080, 1920), _fps=30.0, _qp_val=0, _pix_fmt='bgr24', _codec='libx264'):
+    def __init__(self, _path_video, _resolution=(1920, 1080), _fps=30.0, _qp_val=0, _pix_fmt='bgr24', _codec='libx264'):
         if _path_video is None:
             raise ValueError('The parameter, _path_video, should be assigned.')
 
         self.path_video = _path_video
-        self.height = int(_resolution[0])
-        self.width = int(_resolution[1])
+        self.width = int(_resolution[0])
+        self.height = int(_resolution[1])
         self.fps = float(_fps)
         self.qp_val = _qp_val
         self.pix_fmt = _pix_fmt
@@ -208,13 +209,13 @@ class VideoReaderCV:
 
 
 class VideoWriterCV:
-    def __init__(self, _path_video, _resolution=(1080, 1920), _fps=30.0, _fourcc=cv2.VideoWriter_fourcc(*'MJPG')):
+    def __init__(self, _path_video, _resolution=(1920, 1080), _fps=30.0, _fourcc=cv2.VideoWriter_fourcc(*'MJPG')):
         if _path_video is None:
             raise Exception('The variable, _path_video, should be assigned.')
 
         self.path_video = _path_video
-        self.height = int(_resolution[0])
-        self.width = int(_resolution[1])
+        self.width = int(_resolution[0])
+        self.height = int(_resolution[1])
         self.fps = float(_fps)
         self.fourcc = _fourcc
         self.wri = self._open()
@@ -232,3 +233,126 @@ class VideoWriterCV:
 
 def encode_vid2vid(_path_video_src, _path_video_dst):
     os.system('ffmpeg -i {} {}'.format(_path_video_src, _path_video_dst))
+
+
+class SceneChangeDetectorFFmpeg:
+    # ref.: https://rusty.today/posts/ffmpeg-scene-change-detector
+    #
+    # FFmpeg command:
+    #    i)  ffmpeg -i _path_video -filter:v "select='gt(scene, 0.4)', showinfo" -f null - 2> ffout.log
+    #    ii) grep showinfo ffout.log | grep pts_time:[0-9.]* -o | grep [0-9.]* -o > ffout_scene_change_detection.log
+
+    def __init__(self, _frame_sz=None, _threshold=0.4, _cython=True):
+        if _frame_sz is None:
+            raise ValueError('The argument should be tuple, not None.')
+
+        self.threshold_val = _threshold
+        self.cython = _cython
+        self.frame_sz = _frame_sz
+        self.width = _frame_sz[0]
+        self.height = _frame_sz[1]
+        self.nb_sad = 3 * self.height * self.width
+        self.cnt_call = 0
+        self.mafd_prev = None
+        self.mafd_curr = None
+        self.diff_curr = None
+        self.scence_change_val = None
+        self.res = None
+        self.ndarr_frame_curr = None
+        self.ndarr_frame_ref = None
+
+    def get_frame_index(self, _path_video):
+        res = []
+        vid_src = VideoReaderCV(_path_video=_path_video)
+        for idx in range(int(vid_src.num_frames)):
+            ndarr_frame = cv2.resize(np.squeeze(vid_src.imread(_num_batch_frames=1, _trans=None)), dsize=self.frame_sz, interpolation=cv2.INTER_LINEAR)
+            is_scene_change = self.run(_ndarr_frame=ndarr_frame, _be_float32=True)
+            if is_scene_change is True:
+                res.append(idx)
+
+        return res
+
+    def run(self, _ndarr_frame, _be_float32=True):
+        if _ndarr_frame is None:
+            raise ValueError('The given ndarr_frame should be assigned.')
+
+        if _be_float32 is True:
+            self.ndarr_frame_curr = _ndarr_frame.astype(np.float32)
+        else:
+            self.ndarr_frame_curr = _ndarr_frame
+
+        self._get_scene_change_score()
+        self._detect_scene_change()
+
+        return self.res
+
+    def _get_scene_change_score(self):
+        if self.cnt_call == 0:
+            pass
+        elif self.cnt_call == 1:
+            self._check_dimension()
+            self._get_mafd()
+        else:
+            self._check_dimension()
+            self._get_mafd()
+            self._get_diff()
+            self.scence_change_val = self._calculate_scene_change_value()
+
+        self._update()
+
+    def _detect_scene_change(self):
+        if self.scence_change_val is None:
+            self.res = None # Pending
+        else:
+            if self.threshold_val <= self.scence_change_val:
+                self.res =True # Scene change
+            else:
+                self.res = False # No scene change
+
+    def _check_dimension(self):
+        if self.cython is True:
+            cy_scd.check_dimension(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref)
+        else:
+            if self.ndarr_frame_curr.shape != self.ndarr_frame_ref.shape:
+                raise ValueError('The given both frames should have equal shape.')
+
+    def _get_mafd(self):
+        if self.cython is True:
+            self.mafd_curr = cy_scd.mafd(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref, _nb_sad=self.nb_sad)
+        else:
+            sad = self._get_sad()
+
+            if self.nb_sad == 0:
+                self.mafd_curr = 0.0
+            else:
+                self.mafd_curr = sad / self.nb_sad
+
+    def _get_diff(self):
+        if self.cython is True:
+            self.diff_curr = cy_scd.diff(_val_1=self.mafd_curr, _val_2=self.mafd_prev)
+        else:
+            self.diff_curr = abs(self.mafd_curr - self.mafd_prev)
+
+    def _calculate_scene_change_value(self):
+        if self.cython is True:
+            res = cy_scd.calculate_scene_change_value(_mafd=self.mafd_curr, _diff=self.diff_curr, _min=0.0, _max=1.0)
+        else:
+            res = self._clip(_val=min(self.mafd_curr, self.diff_curr) / 100.0, _min=0.0, _max=1.0)
+
+        return res
+
+    def _get_sad(self):
+        return np.sum(np.fabs(self.ndarr_frame_curr - self.ndarr_frame_ref))
+
+    def _clip(self, _val, _min=0.0, _max=1.0):
+        if _val <= _min:
+            _val = _min
+        if _max <= _val:
+            _val = _max
+
+        return _val
+
+    def _update(self):
+        self.ndarr_frame_ref = self.ndarr_frame_curr
+        self.mafd_prev = self.mafd_curr
+        self.cnt_call += 1
