@@ -2,7 +2,7 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Nov. 2, 2020.
+Date: Oct. 26, 2020.
 
 Title: vujade_videocv.py
 Version: 0.1.2
@@ -15,7 +15,8 @@ import numpy as np
 import math
 import cv2
 import ffmpeg
-from vujade.utils.SceneChangeDetection import cy_scd
+import imutils.video
+from vujade.utils.SceneChangeDetection import scd
 
 
 class VideoReaderFFmpeg:
@@ -72,13 +73,13 @@ class VideoReaderFFmpeg:
 
 
 class VideoWriterFFmpeg:
-    def __init__(self, _path_video, _resolution=(1920, 1080), _fps=30.0, _qp_val=0, _pix_fmt='bgr24', _codec='libx264'):
+    def __init__(self, _path_video, _resolution=(1080, 1920), _fps=30.0, _qp_val=0, _pix_fmt='bgr24', _codec='libx264'):
         if _path_video is None:
             raise ValueError('The parameter, _path_video, should be assigned.')
 
         self.path_video = _path_video
-        self.width = int(_resolution[0])
-        self.height = int(_resolution[1])
+        self.height = int(_resolution[0])
+        self.width = int(_resolution[1])
         self.fps = float(_fps)
         self.qp_val = _qp_val
         self.pix_fmt = _pix_fmt
@@ -117,7 +118,7 @@ class VideoReaderCV:
             raise Exception('The parameter _sec_start should be lower than the parameter _sec_end.')
 
         self.path_video = _path_video
-        self.cap = self._open()
+        self._open()
         self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.fps = float(self.cap.get(cv2.CAP_PROP_FPS))
@@ -151,11 +152,10 @@ class VideoReaderCV:
 
     def _open(self):
         self.cap = cv2.VideoCapture(self.path_video)
+        self.fvs = imutils.video.FileVideoStream(self.path_video).start()
 
         if self._is_open() is False:
             raise ValueError('The video capture is not opened.')
-
-        return self.cap
 
     def _cal_eof(self):
         self.is_eof = (self.idx_frame_curr >= self.frame_end)
@@ -173,7 +173,7 @@ class VideoReaderCV:
         self._cal_eof()
 
     def _read(self):
-        ret, frame = self.cap.read()
+        frame = self.fvs.read() # ret, frame = self.cap.read()
         self._timestamps()
         self.idx_frame_curr += 1
         self._cal_eof()
@@ -206,6 +206,7 @@ class VideoReaderCV:
 
     def close(self):
         self.cap.release()
+        self.fvs.stop()
 
 
 class VideoWriterCV:
@@ -311,14 +312,14 @@ class SceneChangeDetectorFFmpeg:
 
     def _check_dimension(self):
         if self.cython is True:
-            cy_scd.check_dimension(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref)
+            scd.check_dimension(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref)
         else:
             if self.ndarr_frame_curr.shape != self.ndarr_frame_ref.shape:
                 raise ValueError('The given both frames should have equal shape.')
 
     def _get_mafd(self):
         if self.cython is True:
-            self.mafd_curr = cy_scd.mafd(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref, _nb_sad=self.nb_sad)
+            self.mafd_curr = scd.mafd(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref, _nb_sad=self.nb_sad)
         else:
             sad = self._get_sad()
 
@@ -329,13 +330,13 @@ class SceneChangeDetectorFFmpeg:
 
     def _get_diff(self):
         if self.cython is True:
-            self.diff_curr = cy_scd.diff(_val_1=self.mafd_curr, _val_2=self.mafd_prev)
+            self.diff_curr = scd.diff(_val_1=self.mafd_curr, _val_2=self.mafd_prev)
         else:
             self.diff_curr = abs(self.mafd_curr - self.mafd_prev)
 
     def _calculate_scene_change_value(self):
         if self.cython is True:
-            res = cy_scd.calculate_scene_change_value(_mafd=self.mafd_curr, _diff=self.diff_curr, _min=0.0, _max=1.0)
+            res = scd.calculate_scene_change_value(_mafd=self.mafd_curr, _diff=self.diff_curr, _min=0.0, _max=1.0)
         else:
             res = self._clip(_val=min(self.mafd_curr, self.diff_curr) / 100.0, _min=0.0, _max=1.0)
 

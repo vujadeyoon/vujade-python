@@ -23,9 +23,9 @@ from vujade import vujade_multiprocess as multiprocess_
 # from external_library.guided_filter.core.filter import GuidedFilter
 
 
-class _ImwriterMP(multiprocess_._BaseMultiProcess):
+class _ImWriterMP(multiprocess_._BaseMultiProcess):
     def __init__(self, _num_proc=os.cpu_count()):
-        super(_ImwriterMP, self).__init__(_target_method=self._target_method, _num_proc=_num_proc)
+        super(_ImWriterMP, self).__init__(_target_method=self._target_method, _num_proc=_num_proc)
 
     def _target_method(self, queue):
         # Todo: To be coded.
@@ -50,9 +50,9 @@ class _ImwriterMP(multiprocess_._BaseMultiProcess):
             self.queue.put((path, img))
 
 
-class ImwriterMP(_ImwriterMP):
+class ImWriterMP(_ImWriterMP):
     def __init__(self, _num_proc):
-        super(ImwriterMP, self).__init__(_num_proc=_num_proc)
+        super(ImWriterMP, self).__init__(_num_proc=_num_proc)
         self._proc_setup()
 
     def imwrite(self, _list_img, _path_img, _list_postfix_num, _img_extension='.png'):
@@ -88,20 +88,26 @@ def is_image_file(filename):
     return any(filename.endswith(extension) for extension in ['bmp', '.png', '.jpg', '.jpeg', '.tif', 'tiff'])
 
 
-def imread(_filename=None, _flags=cv2.IMREAD_COLOR):
+def imread(_filename=None, _flags=cv2.IMREAD_COLOR, _is_bgr2rgb=False):
     # Default color channel order for the OpenCV: BGRA
     img = cv2.imread(filename=_filename, flags=_flags)
-    if _flags == cv2.IMREAD_COLOR:
+    if _is_bgr2rgb is True:
         img = cv2.cvtColor(src=img, code=cv2.COLOR_BGR2RGB)
 
     return img
 
 
-def imwrite(_filename=None, _ndarr=None):
+def imwrite(_filename=None, _ndarr=None, _is_bgr2rgb=False):
     # Default color channel order for the OpenCV: BGRA
-    if _ndarr.ndim==3 and _ndarr.shape[2]==3:
-        _ndarr = cv2.cvtColor(src=_ndarr, code=cv2.COLOR_RGB2BGR)
+    if _is_bgr2rgb is True:
+        _ndarr = cv2.cvtColor(src=_ndarr, code=cv2.COLOR_BGR2RGB)
     cv2.imwrite(filename=_filename, img=_ndarr.astype(np.uint8))
+
+
+def imresize(_ndarr, _dsize, _interpolation=cv2.INTER_LINEAR):
+    img = cv2.resize(src=_ndarr, dsize=_dsize, interpolation=_interpolation)
+
+    return img
 
 
 def imshow(_winname='Test image', _ndarr=None):

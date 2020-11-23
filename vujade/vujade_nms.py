@@ -13,9 +13,9 @@ Description: A module for Non-Maximum Suppression (NMS)
 
 import numpy as np
 import torch
-from vujade.utils.nms.cython_nms.cy_nms import nms as nms_cy_ndarr
-from vujade.utils.nms.python_nms.py_nms_ndarr import nms as nms_py_ndarr
-from vujade.utils.nms.python_nms.py_nms_tensor import nms as nms_py_tensor
+from vujade.utils.NMS.cython_nms.cy_nms import nms as nms_cy_ndarr
+from vujade.utils.NMS.python_nms.py_nms_ndarr import nms as nms_py_ndarr
+from vujade.utils.NMS.python_nms.py_nms_tensor import nms as nms_py_tensor
 from torchvision.ops import nms as nms_torchvision
 from utils.box_utils import decode, decode_landm
 

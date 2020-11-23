@@ -13,8 +13,8 @@ Description: A module for debug
 import os
 import re
 import traceback
+import numpy as np
 import torch
-from vujade import vujade_utils as utils_
 
 
 # UTIL : call stack function for log
@@ -43,7 +43,7 @@ class DEBUG:
         return False
 
 
-def debug(_print_str='', _var=None, _is_print_full=False, _is_pause=True, _num_ljust=15):
+def debug(_print_str='', _var=None, _is_pause=True, _is_print_full=False, _num_ljust=15):
     if _is_pause is True:
         _print = input
     else:
@@ -64,8 +64,8 @@ def debug(_print_str='', _var=None, _is_print_full=False, _is_pause=True, _num_l
     _print(info_trace)
 
 
-def compare(_var1, _var2, _is_print=True, _is_print_full=False, _is_pause=True):
-    diff = _var1.type(torch.FloatTensor) - _var2.type(torch.FloatTensor)
+def compare_tensor(_var_1, _var_2, _is_print=True, _is_print_full=False, _is_pause=True):
+    diff = _var_1.type(torch.FloatTensor) - _var_2.type(torch.FloatTensor)
     abs_diff = abs(diff)
 
     if _is_print_full is True:
@@ -78,6 +78,22 @@ def compare(_var1, _var2, _is_print=True, _is_print_full=False, _is_pause=True):
             input('Press any key to continue...')
 
     return abs_diff.min().item(), abs_diff.max().item(), abs_diff.mean().item()
+
+
+def compare_ndarr(_var_1, _var_2, _is_print=True, _is_print_full=False, _is_pause=True):
+    diff = _var_1.astype(np.float32) - _var_2.astype(np.float32)
+    abs_diff = abs(diff)
+
+    if _is_print_full is True:
+        print(abs_diff)
+
+    if _is_print is True:
+        print('abs_diff_min: {:.2e}, abs_diff_max: {:.2e}, abs_diff_mean: {:.2e}'.format(abs_diff.min(), abs_diff.max(), abs_diff.mean()))
+
+        if _is_pause is True:
+            input('Press any key to continue...')
+
+    return abs_diff.min(), abs_diff.max(), abs_diff.mean()
 
 
 

@@ -31,6 +31,14 @@ from itertools import compress
 import torch
 
 
+def get_filename_fileext(_path_file):
+    path_file = uppath(_path=_path_file, _n=1)
+    file_name, file_ext = os.path.splitext(_path_file)
+    file_name = file_name[len(path_file) + 1:]
+
+    return file_name, file_ext
+
+
 def is_ndarr(_var):
     return isinstance(_var, (np.ndarray, np.generic))
 
@@ -110,10 +118,10 @@ def get_pkg_version(_pkg_version):
     return int(str('').join(_pkg_version.split('.')[0:3]))
 
 
-def get_device(_cuda):
-    cuda = _cuda
-    device = torch.device('cuda' if cuda else 'cpu')
-    if cuda and not torch.cuda.is_available():
+def get_device(_is_cuda):
+    is_cuda = _is_cuda
+    device = torch.device('cuda' if is_cuda else 'cpu')
+    if is_cuda and not torch.cuda.is_available():
         raise ValueError('No GPU found, please run without --cuda')
 
     return device

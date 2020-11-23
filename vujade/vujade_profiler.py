@@ -203,7 +203,6 @@ class AverageMeterTime:
     def __init__(self, _warmup=0):
         self.warmup = _warmup
         self.cnt_call = 0
-        self.time_list = []
         self.time_len = 0
         self.time_sum = 0.0
         self.time_avg = 0.0
@@ -221,11 +220,10 @@ class AverageMeterTime:
             self._update()
 
     def _update(self):
-        self.time_list.append(self.time_end - self.time_start)
-        self.time_len = len(self.time_list)
-        self.time_sum = sum(self.time_list)
-        self.time_avg = statistics.mean(self.time_list)
-        self.fps_avg = 1 / (statistics.mean(self.time_list) + self.eps_val)
+        self.time_len = (self.cnt_call - self.warmup + 1)
+        self.time_sum += (self.time_end - self.time_start)
+        self.time_avg = (self.time_sum / self.time_len)
+        self.fps_avg = 1 / (self.time_avg + self.eps_val)
 
 
 class AverageMeterValue:
