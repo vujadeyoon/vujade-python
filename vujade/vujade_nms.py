@@ -2,20 +2,18 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 13, 2020.
-
-
+Date: Dec. 03, 2020.
 Title: vujade_nms.py
-Version: 0.1.0
+Version: 0.1.1
 Description: A module for Non-Maximum Suppression (NMS)
 """
 
 
 import numpy as np
 import torch
-from vujade.utils.NMS.cython_nms.cy_nms import nms as nms_cy_ndarr
-from vujade.utils.NMS.python_nms.py_nms_ndarr import nms as nms_py_ndarr
-from vujade.utils.NMS.python_nms.py_nms_tensor import nms as nms_py_tensor
+from vujade.utils.NMS.cython_nms.cy_nms import nms as nms_cy_ndarr_
+from vujade.utils.NMS.python_nms.py_nms_ndarr import nms as nms_py_ndarr_
+from vujade.utils.NMS.python_nms.py_nms_tensor import nms as nms_py_tensor_
 from torchvision.ops import nms as nms_torchvision
 from utils.box_utils import decode, decode_landm
 
@@ -23,16 +21,16 @@ from utils.box_utils import decode, decode_landm
 def nms_cpu(_loc, _conf, _landms, _prior_data, _scale_boxes, _scale_landms, _scaling_ratio, _variance, _args, _nms='nms_cy_ndarr'):
     if _nms == 'nms_cy_ndarr':
         # Option 1: Cython based NMS for ndarray using the CPU by Ross Girshick
-        nms = nms_cy_ndarr
+        nms = nms_cy_ndarr_
     elif _nms == 'nms_py_ndarr':
         # Option 2: Python based NMS for ndarray using the CPU by Ross Girshick
-        nms = nms_py_ndarr
+        nms = nms_py_ndarr_
     elif _nms == 'nms_torchvision':
         # Option 3: Python based NMS for PyTorch tensor using the CPU from the torchvision
         nms = nms_torchvision
     elif _nms == 'nms_py_tensor':
         # Option 4: Python based NMS for PyTorch tensor using the CPU by fmassa
-        nms = nms_py_tensor
+        nms = nms_py_tensor_
     else:
         raise NotImplementedError
 

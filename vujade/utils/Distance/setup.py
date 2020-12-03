@@ -5,7 +5,7 @@ Github: https://github.com/vujadeyoon/vujade
 Date: Dec. 03, 2020.
 Title: setup.py
 Version: 0.1.0
-Description: A module for installing the cython based Non-Maximum Suppression (NMS) module
+Description: A module for installing the cython based distance module
 """
 
 
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # Usage: python3 setup.py build_ext --inplace
 
     setup(
-        name = 'Cython NMS for CPU',
-        ext_modules = cythonize('nms.pyx'),
+        name = 'Cython distance for CPU',
+        ext_modules = cythonize('distance.pyx'),
         include_dirs = [np.get_include()]
     )

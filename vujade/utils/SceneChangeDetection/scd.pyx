@@ -1,3 +1,14 @@
+"""
+Dveloper: vujadeyoon
+E-mail: sjyoon1671@gmail.com
+Github: https://github.com/vujadeyoon/vujade
+Date: Dec. 03, 2020.
+Title: scd.pyx
+Version: 0.1.0
+Description: A module for cython based scene change detection
+"""
+
+
 cimport cython
 import numpy as np
 cimport numpy as np

@@ -2,10 +2,9 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Oct. 26, 2020.
-
+Date: Dec. 03, 2020.
 Title: vujade_videocv.py
-Version: 0.1.2
+Version: 0.1.3
 Description: A module for video processing with computer vision.
 """
 
@@ -16,7 +15,7 @@ import math
 import cv2
 import ffmpeg
 import imutils.video
-from vujade.utils.SceneChangeDetection import scd
+from vujade.utils.SceneChangeDetection import scd as scd_
 
 
 class VideoReaderFFmpeg:
@@ -312,14 +311,14 @@ class SceneChangeDetectorFFmpeg:
 
     def _check_dimension(self):
         if self.cython is True:
-            scd.check_dimension(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref)
+            scd_.check_dimension(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref)
         else:
             if self.ndarr_frame_curr.shape != self.ndarr_frame_ref.shape:
                 raise ValueError('The given both frames should have equal shape.')
 
     def _get_mafd(self):
         if self.cython is True:
-            self.mafd_curr = scd.mafd(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref, _nb_sad=self.nb_sad)
+            self.mafd_curr = scd_.mafd(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref, _nb_sad=self.nb_sad)
         else:
             sad = self._get_sad()
 
@@ -330,13 +329,13 @@ class SceneChangeDetectorFFmpeg:
 
     def _get_diff(self):
         if self.cython is True:
-            self.diff_curr = scd.diff(_val_1=self.mafd_curr, _val_2=self.mafd_prev)
+            self.diff_curr = scd_.diff(_val_1=self.mafd_curr, _val_2=self.mafd_prev)
         else:
             self.diff_curr = abs(self.mafd_curr - self.mafd_prev)
 
     def _calculate_scene_change_value(self):
         if self.cython is True:
-            res = scd.calculate_scene_change_value(_mafd=self.mafd_curr, _diff=self.diff_curr, _min=0.0, _max=1.0)
+            res = scd_.calculate_scene_change_value(_mafd=self.mafd_curr, _diff=self.diff_curr, _min=0.0, _max=1.0)
         else:
             res = self._clip(_val=min(self.mafd_curr, self.diff_curr) / 100.0, _min=0.0, _max=1.0)
 

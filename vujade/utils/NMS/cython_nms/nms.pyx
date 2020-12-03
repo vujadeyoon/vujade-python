@@ -1,3 +1,14 @@
+"""
+Dveloper: vujadeyoon
+E-mail: sjyoon1671@gmail.com
+Github: https://github.com/vujadeyoon/vujade
+Date: Dec. 03, 2020.
+Title: nms.pyx
+Version: 0.1.0
+Description: A module for cython based Non-Maximum Suppression (NMS)
+"""
+
+
 ## Note: Figure out the license details later.
 #
 # Based on:
