@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 27, 2020.
+Date: Dec. 11, 2020.
 
 Title: vujade_imgcv.py
-Version: 0.1.1
+Version: 0.1.2
 Description: A module for image processing and computer vision
              (Commented codes need to be checked because they may not be compatible with the current version.)
 """
@@ -104,8 +104,8 @@ def imwrite(_filename=None, _ndarr=None, _is_bgr2rgb=False):
     cv2.imwrite(filename=_filename, img=_ndarr.astype(np.uint8))
 
 
-def imresize(_ndarr, _dsize, _interpolation=cv2.INTER_LINEAR):
-    img = cv2.resize(src=_ndarr, dsize=_dsize, interpolation=_interpolation)
+def imresize(_ndarr, _dsize, _fx=None, _fy=None, _interpolation=cv2.INTER_LINEAR):
+    img = cv2.resize(src=_ndarr, dsize=_dsize, fx=_fx, fy=_fy, interpolation=_interpolation)
 
     return img
 

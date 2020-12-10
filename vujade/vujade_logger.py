@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Oct. 18, 2020.
+Date: Dec. 11, 2020.
 
 Title: vujade_logger.py
-Version: 0.1.2
+Version: 0.1.3
 Description: A module for logger
 """
 
@@ -17,8 +17,8 @@ from colorlog import ColoredFormatter
 
 
 class vujade_logger:
-    def __init__(self, _filename, _mode='a', _fmt='[%(asctime)s] [%(levelname)s (%(process)s)]: %(message)s', _level=logging.DEBUG):
-        self.filename = _filename
+    def __init__(self, _path_log, _mode='a', _fmt='[%(asctime)s] [%(levelname)s (%(process)s)]: %(message)s', _level=logging.DEBUG):
+        self.path_log = _path_log
         self.mode = _mode
         self.fmt = _fmt
         self.level = _level
@@ -41,14 +41,17 @@ class vujade_logger:
 
     def _set_handler(self):
         logging.captureWarnings(True)
-        formatter_file = logging.Formatter(fmt=self.fmt)
-        formatter_stream = ColoredFormatter(fmt='%(log_color)s' + self.fmt, log_colors=self.log_colors)
 
-        fileHandler = logging.FileHandler(filename=self.filename, mode=self.mode)
+        if self.fmt is not None:
+            formatter_file = logging.Formatter(fmt=self.fmt)
+            formatter_stream = ColoredFormatter(fmt='%(log_color)s' + self.fmt, log_colors=self.log_colors)
+
+        fileHandler = logging.FileHandler(filename=self.path_log, mode=self.mode)
         streamHandler = logging.StreamHandler()
 
-        fileHandler.setFormatter(fmt=formatter_file)
-        streamHandler.setFormatter(fmt=formatter_stream)
+        if self.fmt is not None:
+            fileHandler.setFormatter(fmt=formatter_file)
+            streamHandler.setFormatter(fmt=formatter_stream)
 
         self.logger.addHandler(hdlr=fileHandler)
         self.logger.addHandler(hdlr=streamHandler)
