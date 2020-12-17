@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Sep. 21, 2020.
+Date: Dec. 17, 2020.
 
 Title: vujade_videocv.py
-Version: 0.1.0
+Version: 0.2.0
 Description: A module for yaml.
 """
 

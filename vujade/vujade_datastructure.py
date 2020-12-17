@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Oct. 18, 2020.
+Date: Dec. 17, 2020.
 
 Title: vujade_datastructure.py
-Version: 0.1.1
+Version: 0.2.0
 Description: A collection of data structure
 """
 

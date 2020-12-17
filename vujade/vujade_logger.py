@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Dec. 11, 2020.
+Date: Dec. 17, 2020.
 
 Title: vujade_logger.py
-Version: 0.1.3
+Version: 0.2.0
 Description: A module for logger
 """
 
@@ -65,11 +65,14 @@ class vujade_print2logger:
         self.mode = _mode
         self._run()
 
-    def _run(self):
-        self.stdout_ori = sys.stdout
-        self.fp_log = open(self.path_log, self.mode)
-        sys.stdout = self.fp_log
+    def info(self, _str):
+        print(_str)
 
     def close(self):
         sys.stdout = self.stdout_ori
         self.fp_log.close()
+
+    def _run(self):
+        self.stdout_ori = sys.stdout
+        self.fp_log = open(self.path_log, self.mode)
+        sys.stdout = self.fp_log
