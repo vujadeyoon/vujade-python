@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Dec. 17, 2020.
+Date: Jan. 5, 2021.
 
 Title: vujade_imgcv.py
-Version: 0.2.0
+Version: 0.2.1
 Description: A module for image processing and computer vision
              (Commented codes need to be checked because they may not be compatible with the current version.)
 """
@@ -15,12 +15,9 @@ import os
 import numpy as np
 from PIL import Image
 import cv2
+import cv2.ximgproc as ximgproc
 import pywt
-from vujade import vujade_utils as utils_
-from vujade import vujade_transforms as trans_
 from vujade import vujade_multiprocess as multiprocess_
-# import cv2.ximgproc as ximgproc
-# from external_library.guided_filter.core.filter import GuidedFilter
 
 
 class _ImWriterMP(multiprocess_._BaseMultiProcess):

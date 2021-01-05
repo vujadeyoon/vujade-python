@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Dec. 17, 2020.
+Date: Jan. 5, 2021.
 
 Title: vujade_videocv.py
-Version: 0.2.0
+Version: 0.2.1
 Description: A module for video processing with computer vision.
 """
 
@@ -15,7 +15,6 @@ import numpy as np
 import math
 import cv2
 import ffmpeg
-import imutils.video
 from vujade.utils.SceneChangeDetection import scd as scd_
 
 
@@ -143,38 +142,45 @@ class VideoReaderCV:
             self.frame_end = int(self.sec_end * self.fps)
 
         self.num_frames = self.frame_end - self.frame_start + 1
-        self._set(_idx_frame=self.frame_start - 1)
+        self.idx_frame_curr = (self.frame_start - 1)
         self.frame_timestamps = []
         self.is_eof = False
+        self._set(_idx_frame=self.frame_start)
 
     def _is_open(self):
         return self.cap.isOpened()
 
     def _open(self):
         self.cap = cv2.VideoCapture(self.path_video)
-        self.fvs = imutils.video.FileVideoStream(self.path_video).start()
 
         if self._is_open() is False:
             raise ValueError('The video capture is not opened.')
 
     def _cal_eof(self):
-        self.is_eof = (self.idx_frame_curr >= self.frame_end)
+        self.is_eof = (self.frame_end <= self.idx_frame_curr)
 
     def _set(self, _idx_frame):
         '''
         :param _idx_frame: Interval: [0, self.frame_end-1]
         '''
 
-        if self.frame_end <= _idx_frame:
+        if self.frame_end < _idx_frame:
             raise ValueError('The parameter, _idx_frame, should be lower than self.frame_end.')
 
-        self.cap.set(cv2.CAP_PROP_FRAME_COUNT, _idx_frame)
-        self.idx_frame_curr = _idx_frame
-        self._cal_eof()
+        if self.idx_frame_curr <= _idx_frame:
+            for idx in range((_idx_frame - self.idx_frame_curr) - 1):
+                if self.is_eof is True:
+                    break
+                self._read(_is_record_timestamp=False)
+        else:
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, _idx_frame)
+            self.idx_frame_curr = (_idx_frame - 1)
+            self._cal_eof()
 
-    def _read(self):
-        frame = self.fvs.read() # ret, frame = self.cap.read()
-        self._timestamps()
+    def _read(self, _is_record_timestamp=True):
+        ret, frame = self.cap.read()
+        if _is_record_timestamp is True:
+            self._timestamps()
         self.idx_frame_curr += 1
         self._cal_eof()
 
@@ -192,7 +198,7 @@ class VideoReaderCV:
             if self.is_eof is True:
                 break
 
-            frame_src = np.expand_dims(self._read(), axis=0)
+            frame_src = np.expand_dims(self._read(_is_record_timestamp=True), axis=0)
 
             if idy == 0:
                 frames = frame_src
@@ -206,7 +212,6 @@ class VideoReaderCV:
 
     def close(self):
         self.cap.release()
-        self.fvs.stop()
 
 
 class VideoWriterCV:

@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Dec. 17, 2020.
+Date: Jan. 5, 2021.
 
 Title: vujade_videocv.py
-Version: 0.2.0
+Version: 0.2.1
 Description: A module for yaml.
 """
 
@@ -22,3 +22,7 @@ class vujade_yaml():
             data = yaml.load(f, Loader=yaml.FullLoader)
 
         return data
+
+    def write(self, _dict_data):
+        with open(self.path_filename, 'w') as f:
+            yaml.dump(_dict_data, f)

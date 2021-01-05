@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Dec. 17, 2020.
+Date: Jan. 5, 2021.
 
 Title: vujade_debug.py
-Version: 0.2.0
+Version: 0.2.1
 Description: A module for debug
 """
 
@@ -17,18 +17,15 @@ import numpy as np
 import torch
 
 
-# UTIL : call stack function for log
-reTraceStack = re.compile('File \"(.+?)\", line (\d+?), .+')  # [0] filename, [1] line number
-
-
 class DEBUG:
     def __init__(self):
         self.fileName = None
         self.lineNumber = None
+        self.reTraceStack = re.compile('File \"(.+?)\", line (\d+?), .+')
 
     def get_file_line(self):
         for line in traceback.format_stack()[::-1]:
-            m = re.match(reTraceStack, line.strip())
+            m = re.match(self.reTraceStack, line.strip())
             if m:
                 fileName = m.groups()[0]
 
@@ -94,7 +91,3 @@ def compare_ndarr(_var_1, _var_2, _is_print=True, _is_print_full=False, _is_paus
             input('Press any key to continue...')
 
     return abs_diff.min(), abs_diff.max(), abs_diff.mean()
-
-
-
-

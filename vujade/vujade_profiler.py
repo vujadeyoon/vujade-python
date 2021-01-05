@@ -2,29 +2,55 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Dec. 17, 2020.
+Date: Jan. 5, 2021.
 
 Title: vujade_profiler.py
-Version: 0.2.0
+Version: 0.2.1
 Description: A module for profiler
 """
 
 
+import os
+import re
+import traceback
 import psutil
 import subprocess
 import time
 import statistics
 import numpy as np
-from vujade import vujade_debug as debug_
+from vujade import vujade_resource as rsc_
 from vujade import vujade_utils as utils_
 
 
-class MainMemoryProfiler(debug_.DEBUG):
+class DEBUG:
+    def __init__(self):
+        self.fileName = None
+        self.lineNumber = None
+        self.reTraceStack = re.compile('File \"(.+?)\", line (\d+?), .+')
+
+    def get_file_line(self):
+        for line in traceback.format_stack()[::-1]:
+            m = re.match(self.reTraceStack, line.strip())
+            if m:
+                fileName = m.groups()[0]
+
+                # ignore case
+                if fileName == __file__:
+                    continue
+                self.fileName = os.path.split(fileName)[1]
+                self.lineNumber = m.groups()[1]
+
+                return True
+
+        return False
+
+
+class MainMemoryProfiler(rsc_.MainMemory, DEBUG):
     def __init__(self, _pid=utils_.getpid()):
-        # Unit: MB
-        super().__init__()
+        rsc_.MainMemory.__init__(self, _pid=_pid)
+        DEBUG.__init__(self)
         self.proc = utils_.getproc(_pid=_pid)
-        self.mem_mb_prev = self._get_mem()
+        self.mem_mb_prev = self.get_mem_main_proc()
         self.mem_mb_curr = 0.0
         self.mem_desc = None
         self.mem_variation = 0.0
@@ -44,7 +70,7 @@ class MainMemoryProfiler(debug_.DEBUG):
         _print(info_trace)
 
     def _update(self):
-        self.mem_mb_curr = self._get_mem()
+        self.mem_mb_curr = self.get_mem_main_proc()
         self.mem_percent_curr = dict(psutil.virtual_memory()._asdict())['percent']
 
         if self.mem_mb_prev < self.mem_mb_curr:
@@ -57,17 +83,13 @@ class MainMemoryProfiler(debug_.DEBUG):
         self.mem_variation = self.mem_mb_curr - self.mem_mb_prev
         self.mem_mb_prev = self.mem_mb_curr
 
-    def _get_mem(self):
-        return self.proc.memory_info().rss / (2.0 ** 20) # == self.proc.memory_info()[0] / (2.0 ** 20)
 
-
-class GPUMemoryProfiler(debug_.DEBUG):
-    def __init__(self, _pid=str(utils_.getpid())):
-        # Unit: MB
-        super().__init__()
-        self.pid = _pid
-        self.mem_total = self._get_mem_total()
-        self.mem_mb_prev = self._get_mem()
+class GPUMemoryProfiler(rsc_.GPUMemory, DEBUG):
+    def __init__(self, _pid=utils_.getpid(), _gpu_id=0):
+        rsc_.GPUMemory.__init__(self, _pid=_pid, _gpu_id=_gpu_id)
+        DEBUG.__init__(self)
+        self.mem_total = self.get_mem_gpu_total()
+        self.mem_mb_prev = self.get_mem_gpu_proc()
         self.mem_mb_curr = 0.0
         self.mem_desc = None
         self.mem_variation = 0.0
@@ -87,7 +109,7 @@ class GPUMemoryProfiler(debug_.DEBUG):
         _print(info_trace)
 
     def _update(self):
-        self.mem_mb_curr = self._get_mem()
+        self.mem_mb_curr = self.get_mem_gpu_proc()
         self.mem_percent_curr = 100 * (self.mem_mb_curr / self.mem_total)
 
         if self.mem_mb_prev < self.mem_mb_curr:
@@ -100,30 +122,10 @@ class GPUMemoryProfiler(debug_.DEBUG):
         self.mem_variation = self.mem_mb_curr - self.mem_mb_prev
         self.mem_mb_prev = self.mem_mb_curr
 
-    def _get_gpustat(self):
-        return str(subprocess.run(['gpustat', '-cp'], stdout=subprocess.PIPE).stdout)
 
-    def _get_mem_total(self):
-        gpustat = self._get_gpustat()
-
-        return float(gpustat[gpustat.find('/') + 2:gpustat.find('MB') - 1])
-
-    def _get_mem(self):
-        gpustat = self._get_gpustat()
-        gpustat_info = gpustat[gpustat.find(self.pid):]
-        mem = gpustat_info[gpustat_info.find('(') + 1:gpustat_info.find('M')]
-
-        if mem == '':
-            res = 0.0
-        else:
-            res = float(gpustat_info[gpustat_info.find('(') + 1:gpustat_info.find('M')])
-
-        return res
-
-
-class AverageMeterMainMemory:
+class AverageMeterMainMemory(rsc_.MainMemory):
     def __init__(self, _pid=utils_.getpid(), _warmup=0):
-        # Unit: MB
+        rsc_.MainMemory.__init__(self, _pid=_pid)
         self.warmup = _warmup
         self.cnt_call = 0
         self.mem_list = []
@@ -134,10 +136,10 @@ class AverageMeterMainMemory:
         self.proc = utils_.getproc(_pid=_pid)
 
     def start(self):
-        self.mem_start = self._get_mem()
+        self.mem_start = self.get_mem_main_proc()
 
     def end(self):
-        self.mem_end = self._get_mem()
+        self.mem_end = self.get_mem_main_proc()
         self.cnt_call += 1
 
         if self.warmup < self.cnt_call:
@@ -150,14 +152,10 @@ class AverageMeterMainMemory:
         self.mem_avg = statistics.mean(self.mem_list)
         self.mem_max = max(self.mem_list)
 
-    def _get_mem(self):
-        return self.proc.memory_info().rss / (2.0 ** 20) # == self.proc.memory_info()[0] / (2.0 ** 20)
 
-
-class AverageMeterGPUMemory:
-    def __init__(self, _pid=str(utils_.getpid()), _warmup=0):
-        # Unit: MB
-        self.pid = _pid
+class AverageMeterGPUMemory(rsc_.GPUMemory):
+    def __init__(self, _pid=utils_.getpid(), _gpu_id=0, _warmup=0):
+        rsc_.GPUMemory.__init__(self, _pid=_pid, _gpu_id=_gpu_id)
         self.warmup = _warmup
         self.cnt_call = 0
         self.mem_list = []
@@ -167,10 +165,10 @@ class AverageMeterGPUMemory:
         self.mem_max = 0.0
 
     def start(self):
-        self.mem_start = self._get_mem()
+        self.mem_start = self.get_mem_gpu_proc()
 
     def end(self):
-        self.mem_end = self._get_mem()
+        self.mem_end = self.get_mem_gpu_proc()
         self.cnt_call += 1
 
         if self.warmup < self.cnt_call:
@@ -182,21 +180,6 @@ class AverageMeterGPUMemory:
         self.mem_sum = sum(self.mem_list)
         self.mem_avg = statistics.mean(self.mem_list)
         self.mem_max = max(self.mem_list)
-
-    def _get_gpustat(self):
-        return str(subprocess.run(['gpustat', '-cp'], stdout=subprocess.PIPE).stdout)
-
-    def _get_mem(self):
-        gpustat = self._get_gpustat()
-        gpustat_info = gpustat[gpustat.find(self.pid):]
-        mem = gpustat_info[gpustat_info.find('(') + 1:gpustat_info.find('M')]
-
-        if mem == '':
-            res = 0.0
-        else:
-            res = float(gpustat_info[gpustat_info.find('(') + 1:gpustat_info.find('M')])
-
-        return res
 
 
 class AverageMeterTime:

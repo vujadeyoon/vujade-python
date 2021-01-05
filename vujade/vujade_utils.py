@@ -2,10 +2,10 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Dec. 17, 2020.
+Date: Jan. 5, 2021.
 
 Title: vujade_utils.py
-Version: 0.2.0
+Version: 0.2.1
 Description: Useful utils
 
 Acknowledgement: This implementation is highly inspired from Berkeley CS188.
@@ -26,9 +26,28 @@ import numpy as np
 import scipy
 import signal
 import time
-from itertools import product
-from itertools import compress
+from itertools import product, compress, chain
+import pprint as pprint_
 import torch
+
+
+def sys_exit(_msg='SUCCESS\n', _exit_code=0):
+    '''
+    Arguments:
+        _msg: 'ERROR\n'
+        _exit_code: 0 (Success) / 1 (Fail)
+    '''
+    sys.stderr.write(_msg)
+    sys.exit(_exit_code)
+
+
+def pprint(_obj, _indent=1):
+    pp = pprint_.PrettyPrinter(indent=_indent)
+    pp.pprint(_obj)
+
+
+def unnest_list(_list):
+    return  list(chain(*_list))
 
 
 def get_filename_fileext(_path_file):
@@ -65,6 +84,11 @@ def getpid():
 
 def getproc(_pid=getpid()):
     return psutil.Process(_pid)
+
+
+def terminate_proc(_pid=getpid()):
+    p = psutil.Process(_pid)
+    p.terminate()
 
 
 def str2bool(_v):
