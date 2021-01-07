@@ -2,10 +2,8 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Jan. 5, 2021.
 
 Title: vujade_utils.py
-Version: 0.2.1
 Description: Useful utils
 
 Acknowledgement: This implementation is highly inspired from Berkeley CS188.
@@ -26,9 +24,37 @@ import numpy as np
 import scipy
 import signal
 import time
+import hashlib
 from itertools import product, compress, chain
 import pprint as pprint_
 import torch
+
+
+def get_hash(_path_file: str, _hash: str = 'md5', _is_print: bool = True) -> str:
+    """This function is intended to return the hash value of the given file.
+
+        :param str _path_file: A path for the given file
+        :param str _hash: Cryptographic hash functions for md5, sha1 and sha256
+        :returns: The hash value of the given file
+    """
+
+    if _hash == 'md5':
+        func = hashlib.md5
+    elif _hash == 'sha1':
+        func = hashlib.sha1
+    elif _hash == 'sha256':
+        func = hashlib.sha256
+    else:
+        raise ValueError('The argument, _hash, may be incorrect.')
+
+    with open(_path_file, "rb") as f:
+        data = f.read()
+        res = func(data).hexdigest()
+
+    if _is_print is True:
+        print(res)
+
+    return res
 
 
 def sys_exit(_msg='SUCCESS\n', _exit_code=0):

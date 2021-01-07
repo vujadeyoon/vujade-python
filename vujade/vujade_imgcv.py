@@ -2,10 +2,8 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Jan. 5, 2021.
 
 Title: vujade_imgcv.py
-Version: 0.2.1
 Description: A module for image processing and computer vision
              (Commented codes need to be checked because they may not be compatible with the current version.)
 """

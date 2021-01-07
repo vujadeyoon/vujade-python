@@ -2,10 +2,8 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Jan. 5, 2021.
 
 Title: vujade_videocv.py
-Version: 0.2.1
 Description: A module for video processing with computer vision.
 """
 
@@ -105,16 +103,16 @@ class VideoWriterFFmpeg:
 class VideoReaderCV:
     def __init__(self, _path_video, _sec_start=None, _sec_end=None):
         if _path_video is None:
-            raise Exception('The parameter, _path_video, should be assigned.')
+            raise ValueError('The parameter, _path_video, should be assigned.')
 
         if (_sec_start is not None) and (isinstance(_sec_start, int) is False):
-            raise Exception('The parameter, _sec_start, should be None or integer.')
+            raise ValueError('The parameter, _sec_start, should be None or integer.')
 
         if (_sec_end is not None) and (isinstance(_sec_end, int) is False):
-            raise Exception('The parameter, _sec_end, should be None or integer.')
+            raise ValueError('The parameter, _sec_end, should be None or integer.')
 
         if (isinstance(_sec_start, int) is True) and (isinstance(_sec_end, int) is True) and (_sec_start >= _sec_end):
-            raise Exception('The parameter _sec_start should be lower than the parameter _sec_end.')
+            raise ValueError('The parameter _sec_start should be lower than the parameter _sec_end.')
 
         self.path_video = _path_video
         self._open()
@@ -217,7 +215,7 @@ class VideoReaderCV:
 class VideoWriterCV:
     def __init__(self, _path_video, _resolution=(1920, 1080), _fps=30.0, _fourcc=cv2.VideoWriter_fourcc(*'MJPG')):
         if _path_video is None:
-            raise Exception('The variable, _path_video, should be assigned.')
+            raise ValueError('The variable, _path_video, should be assigned.')
 
         self.path_video = _path_video
         self.width = int(_resolution[0])

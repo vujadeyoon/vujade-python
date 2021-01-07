@@ -2,10 +2,8 @@
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
-Date: Dec. 17, 2020.
 
 Title: vujade_multiprocess.py
-Version: 0.2.0
 Description: A module for multi-processing
 """
 
