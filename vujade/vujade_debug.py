@@ -38,7 +38,7 @@ class DEBUG:
         return False
 
 
-def debug(_print_str='', _var=None, _is_pause=True, _is_print_full=False, _num_ljust=15):
+def debug(_print_str='', _var=None, _is_pause=True, _is_print_full=False):
     if _is_pause is True:
         _print = input
     else:
@@ -49,7 +49,7 @@ def debug(_print_str='', _var=None, _is_pause=True, _is_print_full=False, _num_l
 
     if _var is not None:
         if _is_print_full is False:
-            info_var = '{}, {}, {}'.format(type(_var), str(_var.shape).ljust(_num_ljust), _var.dtype)
+            info_var = '{}, {}, {}'.format(type(_var), str(_var.shape), _var.dtype)
         else:
             info_var = '{}'.format(_var)
     else:

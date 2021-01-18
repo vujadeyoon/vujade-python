@@ -17,8 +17,11 @@ import inspect
 import heapq
 import random
 import os
-import psutil
 import glob
+import subprocess
+import shutil
+import psutil
+import re
 import pickle
 import numpy as np
 import scipy
@@ -30,6 +33,35 @@ import pprint as pprint_
 import torch
 
 
+def list_matching_idx(_list_1: list, _list_2: list) -> list:
+    temp = set(_list_1)
+    return [i for i, val in enumerate(_list_2) if val in temp]
+
+
+def find_substr(_str_src: str, _str_sub: str) -> list:
+    return [m.start() for m in re.finditer(_str_sub, _str_src)]
+
+
+def run_command_stdout(_command: list) -> (str, str):
+    pipe = subprocess.run(_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    str_stdout = pipe.stdout.decode('utf-8')
+    str_stderr = pipe.stderr.decode('utf-8')
+
+    return str_stdout, str_stderr
+
+
+def run_command(_command: str) -> int:
+    return os.system(_command)
+
+
+def rmtree(_path_dir: str, _ignore_errors: bool = False, _onerror=None) -> None:
+    shutil.rmtree(path=_path_dir, ignore_errors=_ignore_errors, onerror=_onerror)
+
+
+def rmfile(_path_file: str) -> None:
+    os.remove(_path_file)
+
+
 def get_hash(_path_file: str, _hash: str = 'md5', _is_print: bool = True) -> str:
     """This function is intended to return the hash value of the given file.
 
@@ -37,7 +69,6 @@ def get_hash(_path_file: str, _hash: str = 'md5', _is_print: bool = True) -> str
         :param str _hash: Cryptographic hash functions for md5, sha1 and sha256
         :returns: The hash value of the given file
     """
-
     if _hash == 'md5':
         func = hashlib.md5
     elif _hash == 'sha1':
@@ -57,12 +88,13 @@ def get_hash(_path_file: str, _hash: str = 'md5', _is_print: bool = True) -> str
     return res
 
 
-def sys_exit(_msg='SUCCESS\n', _exit_code=0):
-    '''
-    Arguments:
-        _msg: 'ERROR\n'
-        _exit_code: 0 (Success) / 1 (Fail)
-    '''
+def sys_exit(_msg: str = 'SUCCESS\n', _exit_code: int = 0) -> None:
+    """This function is intended to exit the interpreter.
+
+        :param str _msg: A message for the exit code
+        :param int _exit_code: 0 (Success) / 1 (Fail)
+        :returns: None
+    """
     sys.stderr.write(_msg)
     sys.exit(_exit_code)
 
@@ -88,7 +120,12 @@ def is_ndarr(_var):
     return isinstance(_var, (np.ndarray, np.generic))
 
 
-def get_env_var(_name_var):
+def get_env_var(_name_var: str) -> str:
+    """This function is intended to get a system environmental variable.
+
+        :param str _name_var: A name of the system environmental variable
+        :returns: The corresponding value for the system environmental variable
+    """
     return os.environ.get(_name_var, '')
 
 
@@ -104,7 +141,7 @@ def bit2bool(_num, _n_bit):
     return ((_num >> _n_bit) & 1 == True)
 
 
-def getpid():
+def getpid() -> int:
     return os.getpid()
 
 
@@ -145,7 +182,7 @@ def print_color(_str, _bcolor='WARNING'):
                'OKBLUE':'\033[94m',
                'OKGREEN':'\033[92m',
                'WARNING':'\033[93m',
-               'FAIL':'\033[91m',
+               'FATAL':'\033[91m',
                'ENDC':'\033[0m',
                'BOLD':'\033[1m',
                'UNDERLINE':'\033[4m'}
@@ -189,7 +226,7 @@ def set_seed(_device, _seed=1234):
         torch.backends.cudnn.benchmark = False
 
 
-def get_datetime():
+def get_datetime() -> (dict, str):
     datetime_object = datetime.datetime.now()
     year = '{:02d}'.format(datetime_object.year % 2000)
     month = '{:02d}'.format(datetime_object.month)
@@ -197,9 +234,18 @@ def get_datetime():
     hour = '{:02d}'.format(datetime_object.hour)
     minute = '{:02d}'.format(datetime_object.minute)
     second = '{:02d}'.format(datetime_object.second)
+
+    dict_datetime_curr = {'year': year,
+                          'month': month,
+                          'day': day,
+                          'hour': hour,
+                          'minute': minute,
+                          'second': second
+                          }
+
     datetime_curr = year + month + day + hour + minute + second
 
-    return datetime_curr
+    return dict_datetime_curr, datetime_curr
 
 
 def uppath(_path, _n=1):
@@ -231,7 +277,15 @@ def get_path(_path=None, _extension=None):
     return sorted(glob.glob(os.path.join(_path, ('*' + _extension))))
 
 
-def makedirs(_path=None, _mode=0o777, _exist_ok=False, _print_msg=False):
+def makedirs(_path: str = None, _mode: int = 0o777, _exist_ok: bool = False, _print_msg: bool = False) -> None:
+    """This function is intended to make a leaf directory.
+
+        :param str _path: A path for the target directory
+        :param int _mode: A mode for the target directory
+        :param bool _exist_ok: A boolean variable that determines if the directory already exists
+        :param bool _print_msg: A boolean variable that determines whether to display error messages
+        :returns: None
+    """
     try:
         os.makedirs(_path, mode=_mode, exist_ok=_exist_ok)
     except OSError as e:

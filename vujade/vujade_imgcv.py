@@ -127,7 +127,7 @@ def casting(_ndarr, _dtype=np.uint8):
     return _ndarr.astype(_dtype)
 
 
-def rgb2ycbcr(_ndarr):
+def bgr2ycbcr(_ndarr: np.ndarray) -> np.ndarray:
     """
     It is equal to MATLAB based rgb2ycbcr:
         img_ycbcbr_uint8 = rgb2ycbcr(img_rgb_uint8)
@@ -137,28 +137,60 @@ def rgb2ycbcr(_ndarr):
     FOR STANDARD 4:3 AND WIDE-SCREEN 16:9 ASPECT RATIOS",
     (1982-1986-1990-1992-1994-1995), Section 3.5.
 
-    Digital Y′CbCr (8 bits per sample) is derived from analog R'G'B' as follows:
-        Y  =  16 +  (65.481 R + 128.553 G + 24.996 B)
-        Cb = 128 + (-37.797 R -  74.203 G +  112.0 B)
-        Cr = 128 +   (112.0 R -  93.786 G - 18.214 B)
+    Digital Y′CbCr (8 bits per sample) is derived from analog B'G'R' as follows:
+        Y  =  16 +  (  24.996 B + 128.553 G +  65.481 R)
+        Cb = 128 +  ( 112.000 B -  74.203 G -  37.797 R)
+        Cr = 128 +  (- 18.214 B -  93.786 G + 112.000 R)
     """
+    trans = [[24.966, 112.0, -18.214], [128.553, -74.203, -93.786], [65.481, -37.797, 112.0]]
+    basis = [16.0, 128.0, 128.0]
+    max_val = 255.0
+
     ndims = _ndarr.ndim
     if ndims==3:
-        res = np.matmul(_ndarr, [[65.481, -37.797, 112.0], [128.553, -74.203, -93.786], [24.966, 112.0, -18.214]]) / 255.0 + [16.0, 128.0, 128.0]
+        res = np.matmul(_ndarr, trans) / max_val + basis
         return res
     elif ndims==4:
         n0, h0, w0, c0 = _ndarr.shape
-        res = np.zeros(shape=(n0, h0, w0, c0))
+        res = np.zeros(shape=(n0, h0, w0, c0), dtype=np.float32)
         for idx_n in range(n0):
-            res[idx_n, :, :, :] = np.matmul(_ndarr[idx_n], [[65.481, -37.797, 112.0], [128.553, -74.203, -93.786], [24.966, 112.0, -18.214]]) / 255.0 + [16.0, 128.0, 128.0]
+            res[idx_n, :, :, :] = np.matmul(_ndarr[idx_n], trans) / max_val + basis
         return res
     else:
         raise NotImplementedError
 
 
-def ycbcr2rgb(_ndarr):
-    # @Todo: To be implemented in the next version, 0.2.
+def ycbcr2bgr(_ndarr: np.ndarray):
     raise NotImplementedError
+
+
+def bgr2gray(_ndarr: np.ndarray) -> np.ndarray:
+    """
+    It is equal to MATLAB based rgb2gray:
+        img_ycbcbr_uint8 = rgb2gray(img_rgb_uint8)
+
+    Luma coding in video systems in the WIKIPEDIA
+    For images in color spaces such as Y'UV and its relatives, which are used in standard color TV and video systems
+    such as PAL, SECAM, and NTSC, a nonlinear luma component (Y') is calculated directly from gamma-compressed primary
+    intensities as a weighted sum, which, although not a perfect representation of the colorimetric luminance,
+    can be calculated more quickly without the gamma expansion and compression used in photometric/colorimetric
+    calculations. In the Y'UV and Y'IQ models used by PAL and NTSC, the rec601 luma (Y') component is computed as
+        Y  = (  0.114 B + 0.587 G +  0.2989 R)
+    """
+    trans = [[0.114], [0.587], [0.2989]]
+
+    ndims = _ndarr.ndim
+    if ndims==3:
+        res = np.matmul(_ndarr, trans)
+        return res
+    elif ndims==4:
+        n0, h0, w0, c0 = _ndarr.shape
+        res = np.zeros(shape=(n0, h0, w0, 1), dtype=np.float32)
+        for idx_n in range(n0):
+            res[idx_n, :, :, :] = np.matmul(_ndarr[idx_n], trans)
+        return res
+    else:
+        raise NotImplementedError
 
 
 def batch2channel(_ndarr):

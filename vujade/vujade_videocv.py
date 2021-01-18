@@ -13,7 +13,13 @@ import numpy as np
 import math
 import cv2
 import ffmpeg
-from vujade.utils.SceneChangeDetection import scd as scd_
+from vujade import vujade_utils as utils_
+from vujade.utils.SceneChangeDetection.InteractiveProcessing import scd as scd_ip_
+from vujade.utils.SceneChangeDetection.BatchProcessing import scd as scd_bp_
+
+
+def encode_vid2vid(_path_video_src, _path_video_dst):
+    os.system('ffmpeg -i {} {}'.format(_path_video_src, _path_video_dst))
 
 
 class VideoReaderFFmpeg:
@@ -101,7 +107,7 @@ class VideoWriterFFmpeg:
 
 
 class VideoReaderCV:
-    def __init__(self, _path_video, _sec_start=None, _sec_end=None):
+    def __init__(self, _path_video: str, _sec_start: int = None, _sec_end: int = None) -> None:
         if _path_video is None:
             raise ValueError('The parameter, _path_video, should be assigned.')
 
@@ -118,6 +124,7 @@ class VideoReaderCV:
         self._open()
         self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.channel = 3
         self.fps = float(self.cap.get(cv2.CAP_PROP_FPS))
         self.num_frames_ori = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.length_ori = int(self.num_frames_ori / self.fps)
@@ -141,23 +148,24 @@ class VideoReaderCV:
 
         self.num_frames = self.frame_end - self.frame_start + 1
         self.idx_frame_curr = (self.frame_start - 1)
+        self.num_frames_remain = self.frame_end - self.frame_start + 1
         self.frame_timestamps = []
         self.is_eof = False
         self._set(_idx_frame=self.frame_start)
 
-    def _is_open(self):
+    def _is_open(self) -> bool:
         return self.cap.isOpened()
 
-    def _open(self):
+    def _open(self) -> None:
         self.cap = cv2.VideoCapture(self.path_video)
 
         if self._is_open() is False:
             raise ValueError('The video capture is not opened.')
 
-    def _cal_eof(self):
+    def _cal_eof(self) -> None:
         self.is_eof = (self.frame_end <= self.idx_frame_curr)
 
-    def _set(self, _idx_frame):
+    def _set(self, _idx_frame: int) -> None:
         '''
         :param _idx_frame: Interval: [0, self.frame_end-1]
         '''
@@ -173,42 +181,81 @@ class VideoReaderCV:
         else:
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, _idx_frame)
             self.idx_frame_curr = (_idx_frame - 1)
+            self.num_frames_remain = self._update_num_frames_reamin()
             self._cal_eof()
 
-    def _read(self, _is_record_timestamp=True):
+
+    def _read(self, _is_record_timestamp: bool = True) -> np.ndarray:
         ret, frame = self.cap.read()
         if _is_record_timestamp is True:
             self._timestamps()
         self.idx_frame_curr += 1
+        self.num_frames_remain = self._update_num_frames_reamin()
         self._cal_eof()
 
         return frame
 
-    def _timestamps(self):
+    def _update_num_frames_reamin(self) -> int:
+        return self.frame_end - self.idx_frame_curr
+
+    def _timestamps(self) -> None:
         self.frame_timestamps.append(self.cap.get(cv2.CAP_PROP_POS_MSEC))
 
-    def imread(self, _num_batch_frames=1, _trans=(0, 3, 1, 2), _set_idx_frame=None):
-        if _set_idx_frame is not None:
+    def imread(self, _num_batch_frames: int = 1, _trans: tuple = None, _set_idx_frame: int = None, _dsize: tuple = None, _color_code: int = None, _interpolation: int = cv2.INTER_LINEAR) -> np.ndarray:
+        if (_dsize is None) or (_dsize == (self.width, self.height)):
+            is_resize = False
+            width = self.width
+            height = self.height
+        else:
+            is_resize = True
+            width = _dsize[0]
+            height = _dsize[1]
+
+        if _color_code is None:
+            channel = self.channel
+        elif _color_code == cv2.COLOR_BGR2GRAY:
+            channel = 1
+        else:
+            raise NotImplementedError
+
+        if (_set_idx_frame is not None) and (0 <= _set_idx_frame):
             self._set(_set_idx_frame)
 
-        frames = None
-        for idy in range(_num_batch_frames):
+        if _num_batch_frames <= self.num_frames_remain:
+            frames = np.zeros(shape=(_num_batch_frames, height, width, channel), dtype=np.uint8)
+            num_batch_frames = _num_batch_frames
+        else:
+            frames = np.zeros(shape=(self.num_frames_remain, height, width, channel), dtype=np.uint8)
+            num_batch_frames = self.num_frames_remain
+
+        for idx in range(num_batch_frames):
             if self.is_eof is True:
                 break
 
-            frame_src = np.expand_dims(self._read(_is_record_timestamp=True), axis=0)
-
-            if idy == 0:
-                frames = frame_src
+            if is_resize is False:
+                temp = self._read(_is_record_timestamp=True)
             else:
-                frames = np.concatenate((frames, frame_src), axis=0)
+                temp = cv2.resize(src=self._read(_is_record_timestamp=True), dsize=(width, height), interpolation=_interpolation)
+
+            if _color_code is None:
+                frames[idx, :, :, :] = temp
+            elif channel == 1:
+                frames[idx, :, :, 0] = cv2.cvtColor(temp, code=_color_code)
+            else:
+                raise NotImplementedError
 
         if _trans is not None:
             frames = frames.transpose(_trans)
 
         return frames
 
-    def close(self):
+    def get_timestamp(self) -> list:
+        while (self.is_eof is False):
+            self.imread(_num_batch_frames=1, _trans=None)
+
+        return self.frame_timestamps
+
+    def close(self) -> None:
         self.cap.release()
 
 
@@ -235,26 +282,64 @@ class VideoWriterCV:
         self.wri.release()
 
 
-def encode_vid2vid(_path_video_src, _path_video_dst):
-    os.system('ffmpeg -i {} {}'.format(_path_video_src, _path_video_dst))
-
-
 class SceneChangeDetectorFFmpeg:
-    # ref.: https://rusty.today/posts/ffmpeg-scene-change-detector
-    #
-    # FFmpeg command:
-    #    i)  ffmpeg -i _path_video -filter:v "select='gt(scene, 0.4)', showinfo" -f null - 2> ffout.log
-    #    ii) grep showinfo ffout.log | grep pts_time:[0-9.]* -o | grep [0-9.]* -o > ffout_scene_change_detection.log
+    """This class is intended to detect scene change for the given video.
+    The reference is as follows: https://rusty.today/posts/ffmpeg-scene-change-detector.
+    The corresponding FFmpeg is as below.
+        i)  ffmpeg -i _path_video -filter:v "select='gt(scene, 0.4)', showinfo" -f null - 2> ffout.log
+        ii) grep showinfo ffout.log | grep pts_time:[0-9.]* -o | grep [0-9.]* -o > ffout_scene_change_detection.log
+    """
+    def __init__(self, _threshold: float = 0.4):
+        self.threshold = _threshold
+        self.cmd = None
+        self.offset = 9
 
-    def __init__(self, _frame_sz=None, _threshold=0.4, _cython=True):
-        if _frame_sz is None:
+    def get_frame_index(self, _path_video: str) -> list:
+        vid_src = VideoReaderCV(_path_video=_path_video)
+        vid_src_timestamp = self._convert(_list=vid_src.get_timestamp(), _unit=1000, _decimals=4)
+
+        command = self._get_command(_path_video=_path_video)
+        str_stdout, str_stderr = utils_.run_command_stdout(_command=command)
+
+        idx_start = utils_.find_substr(_str_src=str_stderr, _str_sub='pts_time:')
+        idx_end = utils_.find_substr(_str_src=str_stderr, _str_sub=' pos:')
+
+        scd_timestamp = []
+        for idx, (_idx_start, _idx_end) in enumerate(zip(idx_start, idx_end)):
+            scd_timestamp.append(float(str_stderr[_idx_start + self.offset:_idx_end]))
+
+        res = utils_.list_matching_idx(_list_1=self._convert(_list=scd_timestamp, _unit=1.0, _decimals=4), _list_2=vid_src_timestamp)
+
+        return res
+
+    def _get_command(self, _path_video: str) -> list:
+        return ["ffmpeg", "-i", _path_video, "-filter:v", "select='gt(scene, {})', showinfo".format(self.threshold), "-f", "null", "pipe:1"]
+
+    def _convert(self, _list, _unit=1.0, _decimals=4):
+        return list(np.round(np.array(_list) / _unit, _decimals))
+
+
+class SceneChangeDetectorFFmpegInteractiveProcessing:
+    """This class is intended to detect scene change for the given video.
+    The reference is as follows: https://rusty.today/posts/ffmpeg-scene-change-detector.
+    The corresponding FFmpeg is as below.
+        i)  ffmpeg -i _path_video -filter:v "select='gt(scene, 0.4)', showinfo" -f null - 2> ffout.log
+        ii) grep showinfo ffout.log | grep pts_time:[0-9.]* -o | grep [0-9.]* -o > ffout_scene_change_detection.log
+    """
+    def __init__(self, _dsize: tuple = None, _threshold: float = 0.4, _is_cython: bool = True):
+        """
+        :param tuple _dsize: An image size for computation
+        :param float _threshold: A thershold value to determine wheter the scene change occurs
+        :param bool _is_cython: A boolean variable to decide whether to use cython
+        """
+        if _dsize is None:
             raise ValueError('The argument should be tuple, not None.')
 
-        self.threshold_val = _threshold
-        self.cython = _cython
-        self.frame_sz = _frame_sz
-        self.width = _frame_sz[0]
-        self.height = _frame_sz[1]
+        self.dsize = _dsize
+        self.threshold = _threshold
+        self.is_cython = _is_cython
+        self.width = _dsize[0]
+        self.height = _dsize[1]
         self.nb_sad = 3 * self.height * self.width
         self.cnt_call = 0
         self.mafd_prev = None
@@ -265,18 +350,21 @@ class SceneChangeDetectorFFmpeg:
         self.ndarr_frame_curr = None
         self.ndarr_frame_ref = None
 
-    def get_frame_index(self, _path_video):
+    def get_frame_index(self, _path_video: str) -> list:
+        """
+        :param str _path_video: A path for the given video file
+        :returns: A list containing the frame index information where the scene change occurs
+        """
         res = []
         vid_src = VideoReaderCV(_path_video=_path_video)
         for idx in range(int(vid_src.num_frames)):
-            ndarr_frame = cv2.resize(np.squeeze(vid_src.imread(_num_batch_frames=1, _trans=None)), dsize=self.frame_sz, interpolation=cv2.INTER_LINEAR)
+            ndarr_frame = np.squeeze(vid_src.imread(_num_batch_frames=1, _trans=None, _dsize=self.dsize))
             is_scene_change = self.run(_ndarr_frame=ndarr_frame, _be_float32=True)
             if is_scene_change is True:
                 res.append(idx)
-
         return res
 
-    def run(self, _ndarr_frame, _be_float32=True):
+    def run(self, _ndarr_frame: np.ndarray, _be_float32: bool = True) -> bool:
         if _ndarr_frame is None:
             raise ValueError('The given ndarr_frame should be assigned.')
 
@@ -290,7 +378,7 @@ class SceneChangeDetectorFFmpeg:
 
         return self.res
 
-    def _get_scene_change_score(self):
+    def _get_scene_change_score(self) -> None:
         if self.cnt_call == 0:
             pass
         elif self.cnt_call == 1:
@@ -304,25 +392,25 @@ class SceneChangeDetectorFFmpeg:
 
         self._update()
 
-    def _detect_scene_change(self):
+    def _detect_scene_change(self) -> None:
         if self.scence_change_val is None:
             self.res = None # Pending
         else:
-            if self.threshold_val <= self.scence_change_val:
-                self.res =True # Scene change
+            if self.threshold <= self.scence_change_val:
+                self.res = True # Scene change
             else:
                 self.res = False # No scene change
 
-    def _check_dimension(self):
-        if self.cython is True:
-            scd_.check_dimension(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref)
+    def _check_dimension(self) -> None:
+        if self.is_cython is True:
+            scd_ip_.check_dimension(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref)
         else:
             if self.ndarr_frame_curr.shape != self.ndarr_frame_ref.shape:
                 raise ValueError('The given both frames should have equal shape.')
 
-    def _get_mafd(self):
-        if self.cython is True:
-            self.mafd_curr = scd_.mafd(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref, _nb_sad=self.nb_sad)
+    def _get_mafd(self) -> None:
+        if self.is_cython is True:
+            self.mafd_curr = scd_ip_.mafd(_ndarr_1=self.ndarr_frame_curr, _ndarr_2=self.ndarr_frame_ref, _nb_sad=self.nb_sad)
         else:
             sad = self._get_sad()
 
@@ -331,24 +419,24 @@ class SceneChangeDetectorFFmpeg:
             else:
                 self.mafd_curr = sad / self.nb_sad
 
-    def _get_diff(self):
-        if self.cython is True:
-            self.diff_curr = scd_.diff(_val_1=self.mafd_curr, _val_2=self.mafd_prev)
+    def _get_diff(self) -> None:
+        if self.is_cython is True:
+            self.diff_curr = scd_ip_.diff(_val_1=self.mafd_curr, _val_2=self.mafd_prev)
         else:
             self.diff_curr = abs(self.mafd_curr - self.mafd_prev)
 
-    def _calculate_scene_change_value(self):
-        if self.cython is True:
-            res = scd_.calculate_scene_change_value(_mafd=self.mafd_curr, _diff=self.diff_curr, _min=0.0, _max=1.0)
+    def _calculate_scene_change_value(self) -> float:
+        if self.is_cython is True:
+            res = scd_ip_.calculate_scene_change_value(_mafd=self.mafd_curr, _diff=self.diff_curr, _min=0.0, _max=1.0)
         else:
             res = self._clip(_val=min(self.mafd_curr, self.diff_curr) / 100.0, _min=0.0, _max=1.0)
 
         return res
 
-    def _get_sad(self):
+    def _get_sad(self) -> np.ndarray:
         return np.sum(np.fabs(self.ndarr_frame_curr - self.ndarr_frame_ref))
 
-    def _clip(self, _val, _min=0.0, _max=1.0):
+    def _clip(self, _val, _min=0.0, _max=1.0) -> float:
         if _val <= _min:
             _val = _min
         if _max <= _val:
@@ -356,7 +444,101 @@ class SceneChangeDetectorFFmpeg:
 
         return _val
 
-    def _update(self):
+    def _update(self) -> None:
         self.ndarr_frame_ref = self.ndarr_frame_curr
         self.mafd_prev = self.mafd_curr
         self.cnt_call += 1
+
+
+class SceneChangeDetectorFFmpegBatchProcessing:
+    """This class is intended to detect scene change for the given video.
+    The reference is as follows: https://rusty.today/posts/ffmpeg-scene-change-detector.
+    The corresponding FFmpeg is as below.
+        i)  ffmpeg -i _path_video -filter:v "select='gt(scene, 0.4)', showinfo" -f null - 2> ffout.log
+        ii) grep showinfo ffout.log | grep pts_time:[0-9.]* -o | grep [0-9.]* -o > ffout_scene_change_detection.log
+    """
+    def __init__(self, _dsize: tuple = None, _threshold: float = 0.4, _is_gray: bool = True, _unit_computation: int = 1800, _is_cython: bool = True):
+        """
+        :param tuple _dsize: An image size for computation
+        :param float _threshold: A thershold value to determine wheter the scene change occurs
+        :param bool _is_gray: A boolean variable to decide whether to be applied on grayscale
+        :param bool _unit_computation: A computation unit
+        :param bool _is_cython: A boolean variable to decide whether to use cython
+        """
+        if _dsize is None:
+            raise ValueError('The argument should be tuple, not None.')
+
+        self.dsize = _dsize
+        self.threshold = _threshold
+        self.is_gray = _is_gray
+        self.unit_computation = _unit_computation
+        self.is_cython = _is_cython
+        self.width = _dsize[0]
+        self.height = _dsize[1]
+        if self.is_gray is True:
+            self.channel = 1
+            self.color_code = cv2.COLOR_BGR2GRAY
+        else:
+            self.channel = 3
+            self.color_code = None
+        self.nb_sad = self.channel * self.height * self.width
+
+        if self.nb_sad == 0:
+            raise ValueError('The self.nb_sad should be positive.')
+
+    def get_frame_index(self, _path_video: str) -> list:
+        """
+        :param str _path_video: A path for the given video file
+        :returns: A list containing the frame index information where the scene change occurs
+        """
+        res = []
+        vid_src = VideoReaderCV(_path_video=_path_video)
+        while (vid_src.is_eof is False):
+            offset = (vid_src.idx_frame_curr - 1)
+            if offset < 0:
+                offset = 0
+
+            ndarr_frames = vid_src.imread(_num_batch_frames=self.unit_computation, _trans=(0, 3, 1, 2),
+                                          _set_idx_frame=(vid_src.idx_frame_curr - 1),
+                                          _dsize=(self.width, self.height),
+                                          _color_code=self.color_code)
+
+            mafd = self._get_mafd(_ndarr_frames=ndarr_frames)
+            diff = self._get_diff(_mafd=mafd)
+            scene_change_val = self._calculate_scene_change_value(_mafd=mafd, _diff=diff)
+            idx_sc = self._get_idx_sc(_scene_change_val=scene_change_val, _threshold=self.threshold, _offset=offset)
+            res.extend(list(idx_sc))
+
+        return res
+
+    def _get_mafd(self, _ndarr_frames) -> np.ndarray:
+        if self.is_cython is True:
+            res = scd_bp_.mafd(_ndarr_1=_ndarr_frames[1:, :, :, :].astype(np.int16), _ndarr_2=_ndarr_frames[:-1, :, :, :].astype(np.int16), _nb_sad=self.nb_sad)
+        else:
+            res = (np.sum(np.abs(_ndarr_frames[1:, :, :, :].astype(np.int16) - _ndarr_frames[:-1, :, :, :].astype(np.int16)), axis=(1, 2, 3))) / self.nb_sad
+
+        return res
+
+    def _get_diff(self, _mafd) -> np.ndarray:
+        if self.is_cython is True:
+            res = scd_bp_.diff(_mafd_1=_mafd[1:], _mafd_2=_mafd[:-1])
+        else:
+            res = np.abs(_mafd[1:] - _mafd[:-1])
+
+        return res
+
+    def _calculate_scene_change_value(self, _mafd, _diff) -> np.ndarray:
+        if self.is_cython is True:
+            res = scd_bp_.calculate_scene_change_value(_mafd=_mafd[1:], _diff=_diff, _min=0.0, _max=1.0)
+        else:
+            res = np.clip(np.minimum(_mafd[1:], _diff) / 100.0, a_min=0.0, a_max=1.0)
+
+        return res
+
+    def _get_idx_sc(self, _scene_change_val, _threshold, _offset) -> np.ndarray:
+        if self.is_cython is True:
+            res = scd_bp_.get_idx_sc(_scene_change_val=_scene_change_val, _threshold=_threshold, _offset=_offset)
+        else:
+            res = np.where(_threshold <= _scene_change_val)[0] + _offset + 2
+
+        return res

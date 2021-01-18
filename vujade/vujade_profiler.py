@@ -43,6 +43,19 @@ class DEBUG:
         return False
 
 
+class IntegratedProfiler:
+    def __init__(self, _pid: int = utils_.getpid(), _gpu_id: int = 0) -> None:
+        self.prof_time = TimeProfiler()
+        self.prof_mem_main = MainMemoryProfiler(_pid=_pid)
+        self.prof_mem_gpu = GPUMemoryProfiler(_pid=_pid, _gpu_id=_gpu_id)
+
+    def run(self, _is_print: bool = False, _is_pause: bool = False):
+        self.prof_time.run(_is_print=_is_print, _is_pause=False)
+        self.prof_mem_main.run(_is_print=_is_print, _is_pause=False)
+        self.prof_mem_gpu.run(_is_print=_is_print, _is_pause=_is_pause)
+        utils_.endl()
+
+
 class MainMemoryProfiler(rsc_.MainMemory, DEBUG):
     def __init__(self, _pid=utils_.getpid()):
         rsc_.MainMemory.__init__(self, _pid=_pid)
@@ -50,9 +63,10 @@ class MainMemoryProfiler(rsc_.MainMemory, DEBUG):
         self.proc = utils_.getproc(_pid=_pid)
         self.mem_mb_prev = self.get_mem_main_proc()
         self.mem_mb_curr = 0.0
+        self.mem_total = self.get_mem_main_total()
         self.mem_desc = None
         self.mem_variation = 0.0
-        self.mem_percent_curr = 0.0
+        self.mem_percent_curr = 100 * (self.mem_mb_prev / self.mem_total)
 
     def run(self, _is_print=False, _is_pause=False):
         if _is_pause is True:
@@ -63,13 +77,13 @@ class MainMemoryProfiler(rsc_.MainMemory, DEBUG):
         self.get_file_line()
         self._update()
 
-        info_mem = 'Main memory: {:8.2f} MB ({:6.2f} %), Memory variation: [{}] {:8.2f} MB.'.format(self.mem_mb_prev, self.mem_percent_curr, self.mem_desc.ljust(8), self.mem_variation)
+        info_mem = 'Main memory: {:8.2f} MiB ({:6.2f} %), Memory variation: [{}] {:8.2f} MiB.'.format(self.mem_mb_prev, self.mem_percent_curr, self.mem_desc.ljust(8), self.mem_variation)
         info_trace = '[{}: {}] '.format(self.fileName, self.lineNumber) + info_mem
         _print(info_trace)
 
     def _update(self):
         self.mem_mb_curr = self.get_mem_main_proc()
-        self.mem_percent_curr = dict(psutil.virtual_memory()._asdict())['percent']
+        self.mem_percent_curr = 100 * (self.mem_mb_curr / self.mem_total)
 
         if self.mem_mb_prev < self.mem_mb_curr:
             self.mem_desc = 'Increase'
@@ -102,7 +116,7 @@ class GPUMemoryProfiler(rsc_.GPUMemory, DEBUG):
         self.get_file_line()
         self._update()
 
-        info_mem = 'GPU  memory: {:8.2f} MB ({:6.2f} %), Memory variation: [{}] {:8.2f} MB.'.format(self.mem_mb_prev, self.mem_percent_curr, self.mem_desc.ljust(8), self.mem_variation)
+        info_mem = 'GPU  memory: {:8.2f} MiB ({:6.2f} %), Memory variation: [{}] {:8.2f} MiB.'.format(self.mem_mb_prev, self.mem_percent_curr, self.mem_desc.ljust(8), self.mem_variation)
         info_trace = '[{}: {}] '.format(self.fileName, self.lineNumber) + info_mem
         _print(info_trace)
 
@@ -119,6 +133,51 @@ class GPUMemoryProfiler(rsc_.GPUMemory, DEBUG):
 
         self.mem_variation = self.mem_mb_curr - self.mem_mb_prev
         self.mem_mb_prev = self.mem_mb_curr
+
+
+class TimeProfiler(DEBUG):
+    def __init__(self) -> None:
+        DEBUG.__init__(self)
+        self.cnt_call = 0
+        self.time_start = 0.0
+        self.time_prev = 0.0
+        self.time_curr = 0.0
+        self.elapsed_time_total = 0.0
+        self.elapsed_time_prev = 0.0
+        self.elapsed_time_curr = 0.0
+
+    def run(self, _is_print: bool = False, _is_pause: bool = False) -> None:
+        if self.cnt_call != 0:
+            if _is_pause is True:
+                _print = input
+            else:
+                _print = print
+
+            self.get_file_line()
+            self._update()
+
+            info_mem = 'Total time: {:.2f} sec., Time: {:.2f} sec.'.format(self.elapsed_time_total, self.elapsed_time_curr)
+            info_trace = '[{}: {}] '.format(self.fileName, self.lineNumber) + info_mem
+            _print(info_trace)
+        else:
+            self.time_start = time.time()
+            self.time_prev = self.time_start
+
+        self.cnt_call += 1
+
+    def _update(self):
+        self.time_curr = time.time()
+        self.elapsed_time_total = self._get_elapsed_time_total()
+        self.elapsed_time_curr = self._get_elapsed_time()
+
+        self.time_prev = self.time_curr
+        self.elapsed_time_prev = self.elapsed_time_curr
+
+    def _get_elapsed_time(self):
+        return self.time_curr - self.time_prev
+
+    def _get_elapsed_time_total(self):
+        return self.time_curr - self.time_start
 
 
 class AverageMeterMainMemory(rsc_.MainMemory):
@@ -181,7 +240,11 @@ class AverageMeterGPUMemory(rsc_.GPUMemory):
 
 
 class AverageMeterTime:
-    def __init__(self, _warmup=0):
+    """This class is intended to profile the processing time"""
+    def __init__(self, _warmup: int = 0):
+        """
+        :param int _warmup: A number of times for warming up.
+        """
         self.warmup = _warmup
         self.cnt_call = 0
         self.time_len = 0
@@ -201,7 +264,7 @@ class AverageMeterTime:
             self._update()
 
     def _update(self):
-        self.time_len = (self.cnt_call - self.warmup + 1)
+        self.time_len = (self.cnt_call - self.warmup)
         self.time_sum += (self.time_end - self.time_start)
         self.time_avg = (self.time_sum / self.time_len)
         self.fps_avg = 1 / (self.time_avg + self.eps_val)

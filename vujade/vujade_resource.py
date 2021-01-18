@@ -32,7 +32,7 @@ from vujade import vujade_utils as utils_
 class GPUStat:
     def __init__(self):
         """
-        Unit: MB
+        Unit: MiB
         """
         self.gpu_stats = gpustat.GPUStatCollection.new_query().jsonify()
         self._init()
@@ -144,7 +144,7 @@ class GPUStat:
 class MainMemory:
     def __init__(self, _pid=utils_.getpid()):
         """
-        Unit: MB
+        Unit: MiB
         """
         self.pid = _pid
         self.proc = utils_.getproc(_pid=self.pid)
@@ -177,7 +177,7 @@ class MainMemory:
 class GPUMemory:
     def __init__(self, _pid=utils_.getpid(), _gpu_id=0):
         """
-        Unit: MB
+        Unit: MiB
         """
         self.pid = _pid
         self.gpu_id = _gpu_id
@@ -303,9 +303,9 @@ class LimitRunTimeFuncDecorator:
 class LimitMainMemory(MainMemory, multithread_.ThreadBase, threading.Thread):
     def __init__(self, _limit_mem, _unit_sec=10e-3, _pid=utils_.getpid(), _gpu_id=0, _is_print=True):
         """
-        Unit: MB
+        Unit: MiB
 
-        Usage: LimitMainMemory(_limit_mem=1024).start() # 1024 MB
+        Usage: LimitMainMemory(_limit_mem=1024).start() # 1024 MiB
         """
         MainMemory.__init__(self, _pid=_pid)
         multithread_.ThreadBase.__init__(self)
@@ -327,8 +327,8 @@ class LimitMainMemory(MainMemory, multithread_.ThreadBase, threading.Thread):
             self.mem_curr = self.get_mem_main_proc()
             if self.limit_mem <= self.mem_curr:
                 if self.is_print is True:
-                    print('The process [{}] will be terminated because the allocated main memory [{:.2f}] MB '
-                          'is exceeded its limit [{:.2f}] MB.'.format(self.pid, self.mem_curr, self.limit_mem))
+                    print('The process [{}] will be terminated because the allocated main memory [{:.2f}] MiB '
+                          'is exceeded its limit [{:.2f}] MiB.'.format(self.pid, self.mem_curr, self.limit_mem))
                 self._unlock()
                 self._set_terminate()
             time.sleep(self.unit_sec)
@@ -352,10 +352,10 @@ class LimitMainMemory(MainMemory, multithread_.ThreadBase, threading.Thread):
 class LimitMainMemoryDecorator(MainMemory, multithread_.ThreadBase, threading.Thread):
     def __init__(self, _limit_mem, _unit_sec=10e-3, _pid=utils_.getpid(), _gpu_id=0, _is_print=True):
         """
-        Unit: MB
+        Unit: MiB
 
         Usage:
-            @LimitMainMemoryDecorator(_limit_mem=1024) # 1024 MB
+            @LimitMainMemoryDecorator(_limit_mem=1024) # 1024 MiB
             def test():
                 a = np.zeros([10, 3, 1080, 1920])
                 b = np.zeros([10, 3, 1080, 1920])
@@ -391,8 +391,8 @@ class LimitMainMemoryDecorator(MainMemory, multithread_.ThreadBase, threading.Th
             self.mem_curr = self.get_mem_main_proc()
             if self.limit_mem <= self.mem_curr:
                 if self.is_print is True:
-                    print('The process [{}] will be terminated because the allocated main memory [{:.2f}] MB '
-                          'is exceeded its limit [{:.2f}] MB.'.format(self.pid, self.mem_curr, self.limit_mem))
+                    print('The process [{}] will be terminated because the allocated main memory [{:.2f}] MiB '
+                          'is exceeded its limit [{:.2f}] MiB.'.format(self.pid, self.mem_curr, self.limit_mem))
                 self._unlock()
                 self._set_terminate()
             time.sleep(self.unit_sec)
@@ -416,9 +416,9 @@ class LimitMainMemoryDecorator(MainMemory, multithread_.ThreadBase, threading.Th
 class LimitGPUMemory(GPUMemory, multithread_.ThreadBase, threading.Thread):
     def __init__(self, _limit_mem, _unit_sec=10e-3, _pid=utils_.getpid(), _gpu_id=0, _is_print=True):
         """
-        Unit: MB
+        Unit: MiB
 
-        Usage: LimitGPUMemory(_limit_mem=1024).start() # 1024 MB
+        Usage: LimitGPUMemory(_limit_mem=1024).start() # 1024 MiB
         """
         GPUMemory.__init__(self, _pid=_pid, _gpu_id=_gpu_id)
         multithread_.ThreadBase.__init__(self)
@@ -440,8 +440,8 @@ class LimitGPUMemory(GPUMemory, multithread_.ThreadBase, threading.Thread):
             self.mem_curr = self.get_mem_gpu_proc()
             if self.limit_mem <= self.mem_curr:
                 if self.is_print is True:
-                    print('The process [{}] will be terminated because the allocated GPU memory [{:.2f}] MB '
-                          'is exceeded its limit [{:.2f}] MB.'.format(self.pid, self.mem_curr, self.limit_mem))
+                    print('The process [{}] will be terminated because the allocated GPU memory [{:.2f}] MiB '
+                          'is exceeded its limit [{:.2f}] MiB.'.format(self.pid, self.mem_curr, self.limit_mem))
                 self._unlock()
                 self._set_terminate()
             time.sleep(self.unit_sec)
@@ -465,7 +465,7 @@ class LimitGPUMemory(GPUMemory, multithread_.ThreadBase, threading.Thread):
 class LimitGPUMemoryDecorator(GPUMemory, multithread_.ThreadBase, threading.Thread):
     def __init__(self, _limit_mem, _unit_sec=10e-3, _pid=utils_.getpid(), _gpu_id=0, _is_print=True):
         """
-        Unit: MB
+        Unit: MiB
         Usage:
             @LimitGPUMemoryDecorator(_limit_mem=1024)
             def test():
@@ -502,8 +502,8 @@ class LimitGPUMemoryDecorator(GPUMemory, multithread_.ThreadBase, threading.Thre
             self.mem_curr = self.get_mem_gpu_proc()
             if self.limit_mem <= self.mem_curr:
                 if self.is_print is True:
-                    print('The process [{}] will be terminated because the allocated GPU memory [{:.2f}] MB '
-                          'is exceeded its limit [{:.2f}] MB.'.format(self.pid, self.mem_curr, self.limit_mem))
+                    print('The process [{}] will be terminated because the allocated GPU memory [{:.2f}] MiB '
+                          'is exceeded its limit [{:.2f}] MiB.'.format(self.pid, self.mem_curr, self.limit_mem))
                 self._unlock()
                 self._set_terminate()
             time.sleep(self.unit_sec)
