@@ -25,6 +25,7 @@ import re
 import pickle
 import numpy as np
 import scipy
+import scipy.io
 import signal
 import time
 import hashlib
@@ -267,6 +268,10 @@ def var2mat(var_name, var):
     # utils.var2mat('var_name', var)
     dir = os.path.join(os.getcwd(), (var_name+'mat'))
     scipy.io.savemat(dir, mdict={var_name: var})
+
+
+def mat2dict(path_mat: str) -> dict:
+    return scipy.io.loadmat(path_mat)
 
 
 def combinations(items):
