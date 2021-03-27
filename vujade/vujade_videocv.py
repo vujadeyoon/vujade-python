@@ -13,6 +13,9 @@ import numpy as np
 import math
 import cv2
 import ffmpeg
+import shlex
+import subprocess
+import json
 from vujade import vujade_utils as utils_
 from vujade.utils.SceneChangeDetection.InteractiveProcessing import scd as scd_ip_
 from vujade.utils.SceneChangeDetection.BatchProcessing import scd as scd_bp_
@@ -128,6 +131,7 @@ class VideoReaderCV:
         self.fps = float(self.cap.get(cv2.CAP_PROP_FPS))
         self.num_frames_ori = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.length_ori = int(self.num_frames_ori / self.fps)
+        self.orientation = self._get_orientation()
 
         if (_sec_end is not None) and (self.length_ori <= _sec_end):
             _sec_end = None
@@ -200,6 +204,31 @@ class VideoReaderCV:
 
     def _timestamps(self) -> None:
         self.frame_timestamps.append(self.cap.get(cv2.CAP_PROP_POS_MSEC))
+
+    def _get_orientation(self) -> str:
+        """
+        Function to get the rotation of the input video file.
+        Adapted from gist.github.com/oldo/dc7ee7f28851922cca09/revisions using the ffprobe comamand by Lord Neckbeard from
+        stackoverflow.com/questions/5287603/how-to-extract-orientation-information-from-videos?noredirect=1&lq=1
+
+        Returns a rotation None, 90, 180 or 270
+        """
+        cmd = "ffprobe -loglevel error -select_streams v:0 -show_entries stream_tags=rotate -of default=nw=1:nk=1"
+        args = shlex.split(cmd)
+        args.append(self.path_video)
+        ffprobe_output = subprocess.check_output(args).decode('utf-8')
+        if len(ffprobe_output) > 0:  # Output of cmdis None if it should be 0
+            ffprobe_output = json.loads(ffprobe_output)
+            rotation = ffprobe_output
+        else:
+            rotation = 0
+
+        if (rotation == 0) or (rotation == 180):
+            orientation = 'horizontal'
+        else:  # (rotation == 90) or (rotation == 270):
+            orientation = 'vertical'
+
+        return orientation
 
     def imread(self, _num_batch_frames: int = 1, _trans: tuple = None, _set_idx_frame: int = None, _dsize: tuple = None, _color_code: int = None, _interpolation: int = cv2.INTER_LINEAR) -> np.ndarray:
         if (_dsize is None) or (_dsize == (self.width, self.height)):

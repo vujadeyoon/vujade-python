@@ -10,6 +10,7 @@
 #
 #
 path_base=$(pwd)
+path_root=$(dirname ${path_base})
 path_cython_utils=${path_base}/vujade/utils
 path_cython_nms=${path_cython_utils}/NMS/cython_nms
 path_cython_scd_inter=${path_cython_utils}/SceneChangeDetection/InteractiveProcessing
@@ -29,3 +30,8 @@ cd ${path_cython_distance} && python3 setup.py build_ext --inplace
 cd ${path_cython_nms} && python3 setup.py build_ext --inplace
 cd ${path_cython_scd_inter} && python3 setup.py build_ext --inplace
 cd ${path_cython_scd_batch} && python3 setup.py build_ext --inplace
+#
+#
+mv ${path_root}/vujade ${path_root}/vujade_temp/
+mv ${path_root}/vujade_temp/vujade ${path_root}/
+rm -rf ${path_root}/vujade_temp/

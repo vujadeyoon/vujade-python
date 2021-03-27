@@ -11,6 +11,7 @@ Acknowledgement: This implementation is highly inspired from Berkeley CS188.
 
 
 import argparse
+from typing import Union
 import datetime
 import sys
 import inspect
@@ -28,10 +29,35 @@ import scipy
 import scipy.io
 import signal
 import time
+from pytz import timezone
 import hashlib
 from itertools import product, compress, chain
 import pprint as pprint_
 import torch
+import json
+
+
+def get_glob(_path: str, _ext_file: str) -> list:
+    return glob.glob('{}/*{}'.format(_path.replace('[', '[[]'), _ext_file))
+
+
+def str2bash_parentheses(_str: str) -> str:
+    res = _str.replace('(', '\(')
+    res = res.replace(')', '\)')
+
+    return res
+
+
+def strlist2list(_str_list: str) -> list:
+    return json.loads(_str_list) # ast.literal_eval(_str_list)
+
+
+def cast_list(_list: list, _type: type = int) -> list:
+    return list(map(_type, _list)) # [_type(i) for i in _list]
+
+
+def check_element_type_list(_list: list, _type: type = int) -> bool:
+    return all(isinstance(idx, _type) for idx in _list)
 
 
 def list_matching_idx(_list_1: list, _list_2: list) -> list:
@@ -51,16 +77,51 @@ def run_command_stdout(_command: list) -> (str, str):
     return str_stdout, str_stderr
 
 
-def run_command(_command: str) -> int:
-    return os.system(_command)
+def run_command(_command: str, _is_daemon: bool = False) -> dict:
+    if _is_daemon is True:
+        command = '{} &'.format(_command)
+    else:
+        command = '{}'.format(_command)
+
+    res_command = os.system(command)
+    if res_command == 0:
+        res = get_pid_ppid(_command=_command)
+        res['is_success'] = True
+    else:
+        res = {}
+        res['is_success'] = False
+
+    return res
 
 
-def rmtree(_path_dir: str, _ignore_errors: bool = False, _onerror=None) -> None:
-    shutil.rmtree(path=_path_dir, ignore_errors=_ignore_errors, onerror=_onerror)
+def rmtree(_path_dir: str, _ignore_errors: bool = False, _onerror=None) -> int:
+    if os.path.isdir(_path_dir) is True:
+        try:
+            shutil.rmtree(path=_path_dir, ignore_errors=_ignore_errors, onerror=_onerror)
+            res = 1
+        except:
+            res = -1
+    else:
+        res = 0
+
+    return res
 
 
-def rmfile(_path_file: str) -> None:
-    os.remove(_path_file)
+def rmfile(_path_file: str) -> int:
+    if os.path.isfile(_path_file) is True:
+        try:
+            os.remove(_path_file)
+            res = 1
+        except:
+            res = -1
+    else:
+        res = 0
+
+    return res
+
+
+def copy(_path_src: str, _path_dst: str) -> None:
+    shutil.copy2(_path_src, _path_dst)
 
 
 def get_hash(_path_file: str, _hash: str = 'md5', _is_print: bool = True) -> str:
@@ -142,6 +203,47 @@ def bit2bool(_num, _n_bit):
     return ((_num >> _n_bit) & 1 == True)
 
 
+def get_idx_substr(_str: str, _str_sub: str, _n: int = 1, _is_reverse=False) -> int:
+    if _is_reverse is False:
+        res = _str.find(_str_sub)
+    else:
+        res = _str.rfind(_str_sub)
+
+    while res >= 0 and _n > 1:
+        if _is_reverse is False:
+            res = _str.find(_str_sub, res + len(_str_sub), -1)
+            _n -= 1
+        else:
+            res = _str.rfind(_str_sub, 0, res - len(_str_sub))
+            _n -= 1
+
+    return res
+
+
+def get_pid_ppid(_command: str) -> dict:
+    command = "ps -ef | grep '{}'".format(_command)
+    res_command = subprocess.check_output(command, shell=True).decode('utf-8')
+
+    pid = None
+    ppid = None
+    for line_command in res_command.split('\n'):
+        idx_find_command = get_idx_substr(_str=line_command, _str_sub=_command, _n=1)
+        idx_find_grep = get_idx_substr(_str=line_command, _str_sub='grep', _n=1)
+        if (idx_find_grep == -1) and (idx_find_command != -1):
+            idx_find_1 = get_idx_substr(_str=line_command, _str_sub=' ', _n=1)
+            idx_find_2 = get_idx_substr(_str=line_command, _str_sub=' ', _n=2)
+            idx_find_3 = get_idx_substr(_str=line_command, _str_sub=' ', _n=3)
+            pid = line_command[idx_find_1+1:idx_find_2]
+            ppid = line_command[idx_find_2+1:idx_find_3]
+
+    res = {'command': _command,
+           'pid': int(pid),
+           'ppid': int(ppid)
+           }
+
+    return res
+
+
 def getpid() -> int:
     return os.getpid()
 
@@ -155,7 +257,8 @@ def terminate_proc(_pid=getpid()):
     p.terminate()
 
 
-def str2bool(_v):
+def str2bool(_v: Union[str, bool]) -> bool:
+    # This function is equivalent to the built-in function, bool(strtobool()), in the distutils.util.
     if isinstance(_v, bool):
        return _v
     if _v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -164,6 +267,13 @@ def str2bool(_v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+def str2list(_str: str) -> list:
+    if isinstance(_str, str):
+        return _str.replace(' ', '').replace('[', '').replace(']', '').split(',')
+    else:
+        raise argparse.ArgumentTypeError('The argument should be string.')
 
 
 def print_info(_var, _print_var=False):
@@ -227,8 +337,8 @@ def set_seed(_device, _seed=1234):
         torch.backends.cudnn.benchmark = False
 
 
-def get_datetime() -> (dict, str):
-    datetime_object = datetime.datetime.now()
+def get_datetime(_timezone=timezone('Asia/Seoul')) -> dict:
+    datetime_object = datetime.datetime.now(_timezone)
     year = '{:02d}'.format(datetime_object.year % 2000)
     month = '{:02d}'.format(datetime_object.month)
     day = '{:02d}'.format(datetime_object.day)
@@ -243,10 +353,15 @@ def get_datetime() -> (dict, str):
                           'minute': minute,
                           'second': second
                           }
+    datetime_curr_default = year + month + day + hour + minute + second
+    datetime_curr_readable = '{}-{}-{} {}:{}:{}'.format(year, month, day, hour, minute, second)
 
-    datetime_curr = year + month + day + hour + minute + second
+    res = {'dict': dict_datetime_curr,
+           'default': datetime_curr_default,
+           'readable': datetime_curr_readable
+           }
 
-    return dict_datetime_curr, datetime_curr
+    return res
 
 
 def uppath(_path, _n=1):

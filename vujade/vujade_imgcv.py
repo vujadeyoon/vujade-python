@@ -92,10 +92,10 @@ def imread(_filename=None, _flags=cv2.IMREAD_COLOR, _is_bgr2rgb=False):
     return img
 
 
-def imwrite(_filename=None, _ndarr=None, _is_bgr2rgb=False):
+def imwrite(_filename=None, _ndarr=None, _is_rgb2bgr=False):
     # Default color channel order for the OpenCV: BGRA
-    if _is_bgr2rgb is True:
-        _ndarr = cv2.cvtColor(src=_ndarr, code=cv2.COLOR_BGR2RGB)
+    if _is_rgb2bgr is True:
+        _ndarr = cv2.cvtColor(src=_ndarr, code=cv2.COLOR_RGB2BGR)
     cv2.imwrite(filename=_filename, img=_ndarr.astype(np.uint8))
 
 

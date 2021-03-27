@@ -11,6 +11,7 @@ Description: A module for csv
 import os
 import pandas as pd
 
+
 class vujade_csv():
     def __init__(self, _path_filename, _isremove=False, _header=None, _index=False, _mode_write='a'):
         super(vujade_csv, self).__init__()
