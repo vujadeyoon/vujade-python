@@ -10,8 +10,6 @@ Acknowledgement: This implementation is highly inspired from Berkeley CS188.
 """
 
 
-import argparse
-from typing import Union
 import datetime
 import sys
 import inspect
@@ -39,17 +37,6 @@ import json
 
 def get_glob(_path: str, _ext_file: str) -> list:
     return glob.glob('{}/*{}'.format(_path.replace('[', '[[]'), _ext_file))
-
-
-def str2bash_parentheses(_str: str) -> str:
-    res = _str.replace('(', '\(')
-    res = res.replace(')', '\)')
-
-    return res
-
-
-def strlist2list(_str_list: str) -> list:
-    return json.loads(_str_list) # ast.literal_eval(_str_list)
 
 
 def cast_list(_list: list, _type: type = int) -> list:
@@ -255,25 +242,6 @@ def getproc(_pid=getpid()):
 def terminate_proc(_pid=getpid()):
     p = psutil.Process(_pid)
     p.terminate()
-
-
-def str2bool(_v: Union[str, bool]) -> bool:
-    # This function is equivalent to the built-in function, bool(strtobool()), in the distutils.util.
-    if isinstance(_v, bool):
-       return _v
-    if _v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif _v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-
-
-def str2list(_str: str) -> list:
-    if isinstance(_str, str):
-        return _str.replace(' ', '').replace('[', '').replace(']', '').split(',')
-    else:
-        raise argparse.ArgumentTypeError('The argument should be string.')
 
 
 def print_info(_var, _print_var=False):
