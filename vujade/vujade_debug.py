@@ -38,6 +38,24 @@ class DEBUG:
         return False
 
 
+def printf(*_args, **_kwargs) -> None:
+    _print = input
+    if ('_is_pause' in _kwargs.keys()) and (_kwargs['_is_pause'] is False):
+        _print = print
+
+    debug_info = DEBUG()
+    debug_info.get_file_line()
+
+    info_str = ''
+    for _idx, _arg in enumerate(_args):
+        info_str += '{} '.format(_arg)
+    info_str = info_str.rstrip(' ')
+
+    info_trace = '[{}: {}]: '.format(debug_info.fileName, debug_info.lineNumber) + info_str
+
+    _print(info_trace)
+
+
 def debug(_print_str='', _var=None, _is_pause=True, _is_print_full=False):
     if _is_pause is True:
         _print = input

@@ -16,6 +16,11 @@ import cv2
 import cv2.ximgproc as ximgproc
 import pywt
 from vujade import vujade_multiprocess as multiprocess_
+from typing import Set
+
+
+def get_img_extension() -> Set[str]:
+    return {'.bmp', '.jpg', 'jpeg', '.png'}
 
 
 class _ImWriterMP(multiprocess_._BaseMultiProcess):

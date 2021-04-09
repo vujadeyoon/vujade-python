@@ -27,29 +27,33 @@ import scipy
 import scipy.io
 import signal
 import time
-from pytz import timezone
 import hashlib
-from itertools import product, compress, chain
+import functools
+import warnings
 import pprint as pprint_
+from pytz import timezone
+from itertools import product, compress
 import torch
-import json
 
 
-def get_glob(_path: str, _ext_file: str) -> list:
-    return glob.glob('{}/*{}'.format(_path.replace('[', '[[]'), _ext_file))
-
-
-def cast_list(_list: list, _type: type = int) -> list:
-    return list(map(_type, _list)) # [_type(i) for i in _list]
-
-
-def check_element_type_list(_list: list, _type: type = int) -> bool:
-    return all(isinstance(idx, _type) for idx in _list)
-
-
-def list_matching_idx(_list_1: list, _list_2: list) -> list:
-    temp = set(_list_1)
-    return [i for i, val in enumerate(_list_2) if val in temp]
+def deprecated(func):
+    """
+    Usage: @utils_.deprecated
+           def test(_arg):
+               pass
+    Description: This is a decorator which can be used to mark functions as deprecated.
+                 It will result in a warning being emitted when the function is used.
+    Reference: https://pythonq.com/so/python/31146
+    """
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        warnings.simplefilter('always', DeprecationWarning)
+        warnings.warn("Call to deprecated function {}.".format(func.__name__),
+                      category=DeprecationWarning,
+                      stacklevel=2)
+        warnings.simplefilter('default', DeprecationWarning)
+        return func(*args, **kwargs)
+    return new_func
 
 
 def find_substr(_str_src: str, _str_sub: str) -> list:
@@ -151,18 +155,6 @@ def sys_exit(_msg: str = 'SUCCESS\n', _exit_code: int = 0) -> None:
 def pprint(_obj, _indent=1):
     pp = pprint_.PrettyPrinter(indent=_indent)
     pp.pprint(_obj)
-
-
-def unnest_list(_list):
-    return  list(chain(*_list))
-
-
-def get_filename_fileext(_path_file):
-    path_file = uppath(_path=_path_file, _n=1)
-    file_name, file_ext = os.path.splitext(_path_file)
-    file_name = file_name[len(path_file) + 1:]
-
-    return file_name, file_ext
 
 
 def is_ndarr(_var):
@@ -330,21 +322,6 @@ def get_datetime(_timezone=timezone('Asia/Seoul')) -> dict:
            }
 
     return res
-
-
-def uppath(_path, _n=1):
-    return os.sep.join(_path.split(os.sep)[:-_n])
-
-
-def get_filename_ext(_path, _type_return='split'):
-    filename_ext = _path[len(uppath(_path=_path, _n=1)) + 1:]
-    if _type_return == 'join':
-        return filename_ext
-    elif _type_return == 'split':
-        filename, ext = os.path.splitext(filename_ext)
-        return filename, ext
-    else:
-        raise NotImplementedError
 
 
 def var2mat(var_name, var):

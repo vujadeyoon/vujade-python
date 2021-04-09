@@ -229,4 +229,26 @@ def _matlab_style_gauss2D(_shape=(3, 3), _sigma=0.5):
     sumh = h.sum()
     if sumh != 0:
         h /= sumh
+
     return h
+
+
+def get_iou(_ndarr_bbox_1, _ndarr_bbox_2):
+    # _ndarr_bbox = (x1, y1, x2, y2)
+    box1_area = (_ndarr_bbox_1[2] - _ndarr_bbox_1[0] + 1) * (_ndarr_bbox_1[3] - _ndarr_bbox_1[1] + 1)
+    box2_area = (_ndarr_bbox_2[2] - _ndarr_bbox_2[0] + 1) * (_ndarr_bbox_2[3] - _ndarr_bbox_2[1] + 1)
+
+    # obtain x1, y1, x2, y2 of the intersection
+    x1 = max(_ndarr_bbox_1[0], _ndarr_bbox_2[0])
+    y1 = max(_ndarr_bbox_1[1], _ndarr_bbox_2[1])
+    x2 = min(_ndarr_bbox_1[2], _ndarr_bbox_2[2])
+    y2 = min(_ndarr_bbox_1[3], _ndarr_bbox_2[3])
+
+    # compute the width and height of the intersection
+    w = max(0, x2 - x1 + 1)
+    h = max(0, y2 - y1 + 1)
+
+    inter = w * h
+    iou = inter / (box1_area + box2_area - inter)
+
+    return iou

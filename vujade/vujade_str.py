@@ -10,7 +10,15 @@ Description: A module for string
 
 import argparse
 import json
-from typing import Union
+from typing import Union, Optional
+
+
+def rstrip(_str: str, _chars: Optional[str] = None) -> str:
+    return _str.rstrip(_chars)
+
+
+def lstrip(_str: str, _chars: Optional[str] = None) -> str:
+    return _str.lstrip(_chars)
 
 
 def remove_multiple_whitespace(_str: str) -> str:
