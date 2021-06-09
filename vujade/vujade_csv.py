@@ -8,29 +8,30 @@ Description: A module for csv
 """
 
 
-import os
+import numpy as np
 import pandas as pd
+from typing import Optional
+from vujade import vujade_path as path_
 
 
 class vujade_csv():
-    def __init__(self, _path_filename, _isremove=False, _header=None, _index=False, _mode_write='a'):
+    def __init__(self, _path_filename: str, _is_remove: bool = False, _header: Optional[list] = None, _index: bool = False, _mode_write: str = 'a'):
         super(vujade_csv, self).__init__()
-        self.path_filename = _path_filename
+        self.path_filename = path_.Path(_path=_path_filename)
         self.header = _header
         self.index = _index
         self.mode_write = _mode_write
-
         self.isFirstWrite = True
 
-        if _isremove is True and os.path.isfile(path=_path_filename):
-            os.remove(path=_path_filename)
+        if _is_remove is True and self.path_filename.path.is_file() is True:
+            self.path_filename.path.unlink()
 
-    def read(self):
-        return pd.read_csv(self.path_filename)
+    def read(self) -> pd.DataFrame:
+        return pd.read_csv(self.path_filename.str)
 
-    def write(self, _ndarr):
+    def write(self, _ndarr: np.array) -> None:
         if self.isFirstWrite is True:
-            pd.DataFrame(_ndarr).to_csv(self.path_filename, header=self.header, index=self.index, mode=self.mode_write)
+            pd.DataFrame(_ndarr).to_csv(self.path_filename.str, header=self.header, index=self.index, mode=self.mode_write)
             self.isFirstWrite = False
         else:
-            pd.DataFrame(_ndarr).to_csv(self.path_filename, header=False, index=self.index, mode=self.mode_write)
+            pd.DataFrame(_ndarr).to_csv(self.path_filename.str, header=False, index=self.index, mode=self.mode_write)

@@ -10,7 +10,6 @@ Acknowledgement: This implementation is highly inspired from Berkeley CS188.
 """
 
 
-import datetime
 import sys
 import inspect
 import heapq
@@ -31,9 +30,8 @@ import hashlib
 import functools
 import warnings
 import pprint as pprint_
-from pytz import timezone
-from itertools import product, compress
 import torch
+from itertools import product, compress
 
 
 def deprecated(func):
@@ -295,33 +293,6 @@ def set_seed(_device, _seed=1234):
         torch.cuda.manual_seed_all(_seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-
-
-def get_datetime(_timezone=timezone('Asia/Seoul')) -> dict:
-    datetime_object = datetime.datetime.now(_timezone)
-    year = '{:02d}'.format(datetime_object.year % 2000)
-    month = '{:02d}'.format(datetime_object.month)
-    day = '{:02d}'.format(datetime_object.day)
-    hour = '{:02d}'.format(datetime_object.hour)
-    minute = '{:02d}'.format(datetime_object.minute)
-    second = '{:02d}'.format(datetime_object.second)
-
-    dict_datetime_curr = {'year': year,
-                          'month': month,
-                          'day': day,
-                          'hour': hour,
-                          'minute': minute,
-                          'second': second
-                          }
-    datetime_curr_default = year + month + day + hour + minute + second
-    datetime_curr_readable = '{}-{}-{} {}:{}:{}'.format(year, month, day, hour, minute, second)
-
-    res = {'dict': dict_datetime_curr,
-           'default': datetime_curr_default,
-           'readable': datetime_curr_readable
-           }
-
-    return res
 
 
 def var2mat(var_name, var):

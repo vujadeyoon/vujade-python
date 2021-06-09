@@ -16,9 +16,18 @@ import ffmpeg
 import shlex
 import subprocess
 import json
+from typing import Set
 from vujade import vujade_utils as utils_
 from vujade.utils.SceneChangeDetection.InteractiveProcessing import scd as scd_ip_
 from vujade.utils.SceneChangeDetection.BatchProcessing import scd as scd_bp_
+
+
+def timestamp2smss(_timestamp: list) -> list:
+    return list(map(lambda x: math.floor(x) / (10 ** 3), _timestamp))
+
+
+def get_vid_extension() -> Set[str]:
+    return {'.avi', '.mp4', '.yuv'}
 
 
 def encode_vid2vid(_path_video_src, _path_video_dst):
@@ -282,7 +291,7 @@ class VideoReaderCV:
         while (self.is_eof is False):
             self.imread(_num_batch_frames=1, _trans=None)
 
-        return self.frame_timestamps
+        return self.frame_timestamps # smss.mus
 
     def close(self) -> None:
         self.cap.release()

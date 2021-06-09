@@ -10,7 +10,7 @@ Description: A module for path
 
 import os
 import glob
-import site
+import sys
 import pathlib
 from typing import Union, List, Tuple
 
@@ -37,11 +37,12 @@ class Path(object):
     def str(self) -> str:
         return self.__path_str
 
-    def export_pythonpath(self) -> None:
-        site.addsitedir(sitedir=self.path)
-
     def replace_ext(self, _new):
         return Path(_path=self.str.replace(self.ext, _new))
+
+
+def export_pythonpath(self, _path: str) -> None:
+        sys.path.append(_path) # site.addsitedir(sitedir=_path)
 
 
 def uppath(_path: str, _n: int = 1) -> str:

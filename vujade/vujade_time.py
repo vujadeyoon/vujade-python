@@ -1,0 +1,45 @@
+"""
+Dveloper: vujadeyoon
+E-mail: sjyoon1671@gmail.com
+Github: https://github.com/vujadeyoon/vujade
+
+Title: vujade_time.py
+Description: A module for time
+"""
+
+
+import datetime
+from pytz import timezone
+
+
+def get_datetime(_timezone=timezone('Asia/Seoul')) -> dict:
+    datetime_object = datetime.datetime.now(_timezone)
+    year = '{:02d}'.format(datetime_object.year % 2000)
+    month = '{:02d}'.format(datetime_object.month)
+    day = '{:02d}'.format(datetime_object.day)
+    hour = '{:02d}'.format(datetime_object.hour)
+    minute = '{:02d}'.format(datetime_object.minute)
+    second = '{:02d}'.format(datetime_object.second)
+
+    dict_datetime_curr = {'year': year,
+                          'month': month,
+                          'day': day,
+                          'hour': hour,
+                          'minute': minute,
+                          'second': second
+                          }
+    datetime_curr_default = year + month + day + hour + minute + second
+    datetime_curr_readable = '{}-{}-{} {}:{}:{}'.format(year, month, day, hour, minute, second)
+
+    res = {'dict': dict_datetime_curr,
+           'default': datetime_curr_default,
+           'readable': datetime_curr_readable
+           }
+
+    return res
+
+
+def hmsmss2smss(_hmsmss: str) -> str:
+    hour, minute, sec_mss = _hmsmss.split(':')
+    sec, mss = sec_mss.split('.')
+    return '{}.{}'.format((3600 * int(hour)) + (60 * int(minute)) + int(sec), mss)

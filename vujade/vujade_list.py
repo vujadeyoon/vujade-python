@@ -9,6 +9,7 @@ Description: A module for list
 
 
 import itertools
+import math
 
 
 def flatten_list(_list: list) -> list:
@@ -35,3 +36,8 @@ def is_unique_element_in_list(_list: list) -> bool:
 def list_matching_idx(_list_1: list, _list_2: list) -> list:
     temp = set(_list_1)
     return [i for i, val in enumerate(_list_2) if val in temp]
+
+
+def floor(_list: list, _point: int = 0) -> list:
+    offset = 10 ** _point
+    return list(map(lambda x: math.floor(offset * x) / offset, _list))
