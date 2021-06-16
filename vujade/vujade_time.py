@@ -43,3 +43,11 @@ def hmsmss2smss(_hmsmss: str) -> str:
     hour, minute, sec_mss = _hmsmss.split(':')
     sec, mss = sec_mss.split('.')
     return '{}.{}'.format((3600 * int(hour)) + (60 * int(minute)) + int(sec), mss)
+
+
+def s2hmsmss(_s: str) -> str:
+    hour = int(int(_s) / 3600)
+    minute = int(int(int(_s) % 3600) / 60)
+    sec = int(int(int(_s) % 3600) % 60)
+    mss = 0
+    return '{:02d}:{:02d}:{:02d}.{:03d}'.format(hour, minute, sec, mss)

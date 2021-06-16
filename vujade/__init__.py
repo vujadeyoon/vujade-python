@@ -8,8 +8,8 @@ Description: A method-wrapper for the package, vujade.
 """
 
 
-__date__ = '210609'
-__version__ = '0.3.3'
+__date__ = '210616'
+__version__ = '0.3.4'
 __all__ = ['vujade_aws', 'vujade_csv', 'vujade_datastructure', 'vujade_debug', 'vujade_dnn', 'vujade_download',
            'vujade_flops_counter', 'vujade_handler', 'vujade_imgcv', 'vujade_json', 'vujade_kube', 'vujade_list',
            'vujade_logger', 'vujade_loss', 'vujade_lr_scheduler', 'vujade_metric', 'vujade_multiprocess',

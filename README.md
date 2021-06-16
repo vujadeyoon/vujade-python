@@ -12,8 +12,8 @@
     - The vujade consists of useful codes that I coded myself, wrapper classes and wrapper functions for the Python3 package.
     - Once you're comfortable with vujade, you don't need to search the internet to see how to use functions and classes.
 - I recommend that you should ignore the commented instructions with an octothorpe, #.
-- Modified date: April 9, 2021.
-- Version: 0.3.2
+- Modified date: June 16, 2021.
+- Version: 0.3.4
 
 
 ## 2. License <a name="license"></a>
