@@ -12,6 +12,7 @@ import os
 import glob
 import sys
 import pathlib
+import shutil
 from typing import Union, List, Tuple
 
 
@@ -37,12 +38,25 @@ class Path(object):
     def str(self) -> str:
         return self.__path_str
 
-    def replace_ext(self, _new):
+    def replace_ext(self, _new: str):
         return Path(_path=self.str.replace(self.ext, _new))
+
+    def copy(self, _dst: str) -> None:
+        try:
+            shutil.copy2(src=self.str, dst=_dst)
+        except Exception as e:
+            raise OSError('The file copy is failed.: {}'.format(e))
+
+    def unlink(self, _missing_ok: bool = True) -> None:
+        if self.path.is_file() is True:
+            self.path.unlink()
+        else:
+            if _missing_ok is False:
+                raise FileNotFoundError('The file, {} is not existed.'.format(self.str))
 
 
 def export_pythonpath(self, _path: str) -> None:
-        sys.path.append(_path) # site.addsitedir(sitedir=_path)
+    sys.path.append(_path) # site.addsitedir(sitedir=_path)
 
 
 def uppath(_path: str, _n: int = 1) -> str:

@@ -32,6 +32,7 @@ import warnings
 import pprint as pprint_
 import torch
 from itertools import product, compress
+from vujade import vujade_debug as debug_
 
 
 def deprecated(func):
@@ -259,7 +260,7 @@ def print_color(_str, _bcolor='WARNING'):
 
 
 def pause(_str='<Press enter/return to continue>'):
-    input(_str)
+    debug_.printf(_str)
 
 
 def endl():
