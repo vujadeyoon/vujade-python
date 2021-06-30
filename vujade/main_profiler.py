@@ -1,3 +1,13 @@
+"""
+Dveloper: vujadeyoon
+E-mail: sjyoon1671@gmail.com
+Github: https://github.com/vujadeyoon/vujade
+
+Title: main_profiler.py
+Description: A main python script to profile time, main memory and gpu memory.
+"""
+
+
 import time
 import argparse
 from vujade import vujade_utils as utils_

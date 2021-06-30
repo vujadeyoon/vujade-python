@@ -17,12 +17,11 @@ from typing import Union, List, Tuple
 
 
 class Path(object):
-    def __init__(self, _path: str):
-        self.__path_str = _path
-        self.__path = pathlib.Path(_path)
-        self.parent = self.path.parent
+    def __init__(self, _spath: str):
+        self.__spath = _spath
         self.name = self.path.stem
         self.ext = self.path.suffix
+        self.filename = self.name + self.ext
 
     def __str__(self) -> str:
         return self.str
@@ -31,19 +30,23 @@ class Path(object):
         return self.str
 
     @property
-    def path(self) -> pathlib.Path:
-        return self.__path
+    def str(self) -> str:
+        return self.__spath
 
     @property
-    def str(self) -> str:
-        return self.__path_str
+    def path(self) -> pathlib.Path:
+        return pathlib.Path(self.str)
+
+    @property
+    def parent(self):
+        return Path(_spath=str(self.path.parent))
 
     def replace_ext(self, _new: str):
-        return Path(_path=self.str.replace(self.ext, _new))
+        return Path(_spath=self.str.replace(self.ext, _new))
 
-    def copy(self, _dst: str) -> None:
+    def copy(self, _spath_dst: str) -> None:
         try:
-            shutil.copy2(src=self.str, dst=_dst)
+            shutil.copy2(src=self.str, dst=_spath_dst)
         except Exception as e:
             raise OSError('The file copy is failed.: {}'.format(e))
 
@@ -54,18 +57,21 @@ class Path(object):
             if _missing_ok is False:
                 raise FileNotFoundError('The file, {} is not existed.'.format(self.str))
 
-
-def export_pythonpath(self, _path: str) -> None:
-    sys.path.append(_path) # site.addsitedir(sitedir=_path)
-
-
-def uppath(_path: str, _n: int = 1) -> str:
-    return os.sep.join(_path.split(os.sep)[:-_n])
+    def cd(self) -> None:
+        os.chdir(self.str)
 
 
-def get_file_name_ext(_path: str, _type_return: str = 'split') -> Union[str, Tuple[str, str]]:
-    path_wo_filename = uppath(_path=_path, _n=1)
-    file_name_ext = _path[len(path_wo_filename) + 1:]
+def export_pythonpath(self, _spath: str) -> None:
+    sys.path.append(_spath) # site.addsitedir(sitedir=_spath)
+
+
+def uppath(_spath: str, _n: int = 1) -> str:
+    return os.sep.join(_spath.split(os.sep)[:-_n])
+
+
+def get_file_name_ext(_spath: str, _type_return: str = 'split') -> Union[str, Tuple[str, str]]:
+    path_wo_filename = uppath(_spath=_spath, _n=1)
+    file_name_ext = _spath[len(path_wo_filename) + 1:]
     if _type_return == 'join':
         return file_name_ext
     elif _type_return == 'split':
@@ -75,5 +81,5 @@ def get_file_name_ext(_path: str, _type_return: str = 'split') -> Union[str, Tup
         raise NotImplementedError
 
 
-def get_glob(_path: str, _file_ext: str) -> List[str]:
-    return glob.glob('{}/*{}'.format(_path.replace('[', '[[]'), _file_ext))
+def get_glob(_spath: str, _file_ext: str) -> List[str]:
+    return glob.glob('{}/*{}'.format(_spath.replace('[', '[[]'), _file_ext))

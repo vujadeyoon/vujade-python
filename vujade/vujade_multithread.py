@@ -1,4 +1,5 @@
 """
+from abc import *
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
@@ -8,14 +9,14 @@ Description: A module for multi-thread
 """
 
 
-from abc import *
+import abc
 
 
-class ThreadBase(metaclass=ABCMeta):
-    @abstractmethod
+class ThreadBase(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
     def _lock(self):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def _unlock(self):
         pass

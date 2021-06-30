@@ -15,9 +15,9 @@ from vujade import vujade_path as path_
 
 
 class vujade_csv():
-    def __init__(self, _path_filename: str, _is_remove: bool = False, _header: Optional[list] = None, _index: bool = False, _mode_write: str = 'a'):
+    def __init__(self, _spath_filename: str, _is_remove: bool = False, _header: Optional[list] = None, _index: bool = False, _mode_write: str = 'a'):
         super(vujade_csv, self).__init__()
-        self.path_filename = path_.Path(_path=_path_filename)
+        self.path_filename = path_.Path(_spath=_spath_filename)
         self.header = _header
         self.index = _index
         self.mode_write = _mode_write
