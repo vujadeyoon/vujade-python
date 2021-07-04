@@ -25,6 +25,7 @@ def flops_to_string(flops):
         return str(round(flops / 10.**3, 2)) + 'KMac'
     return str(flops) + 'Mac'
 
+
 def get_model_parameters_number(model, as_string=True):
     params_num = sum(p.numel() for p in model.parameters() if p.requires_grad)
     if not as_string:
@@ -36,6 +37,7 @@ def get_model_parameters_number(model, as_string=True):
         return str(round(params_num / 10 ** 3, 2)) + 'k'
 
     return str(params_num)
+
 
 def add_flops_counting_methods(net_main_module):
     # adding additional methods to the existing module object,

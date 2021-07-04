@@ -71,7 +71,7 @@ class ImWriterMP(_ImWriterMP):
         return list_frames, list_idx_frames
 
 
-class DWT2():
+class DWT2(object):
     def __init__(self, _wavelet='haar'):
         super(DWT2, self).__init__()
         self.wavelet = _wavelet
@@ -225,7 +225,7 @@ def img2ndarr(_img):
     return np.array(_img, copy=True) # Default copy parameter: True
 
 
-class Guided_Filter():
+class Guided_Filter(object):
     def __init__(self, _radius=5, _eps=None, _dDepth=-1, _scale=0.01, _option='layer_detail'):
         """
         The class, GuidedFilter, should be used for each image because of variable, self.layer_detail_max when using the option, layer_detail_rescale.

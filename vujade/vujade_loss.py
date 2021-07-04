@@ -14,7 +14,7 @@ import torch.nn.functional as F
 from vujade import vujade_transforms as trans_
 
 
-class CEloss():
+class CEloss(object):
     def __init__(self, _ignore_index=-1):
         super(CEloss, self).__init__()
         self.ignore_index = _ignore_index
@@ -46,7 +46,7 @@ def _l1loss_charbonnier(_input, _ref, _eps=1e-3):
     return torch.mean(torch.sqrt(((_input - _ref) ** 2) + (_eps ** 2)))
 
 
-class L1loss_sobel():
+class L1loss_sobel(object):
     def __init__(self, _device):
         super(L1loss_sobel, self).__init__()
         self.device = _device

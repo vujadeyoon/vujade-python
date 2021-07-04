@@ -8,24 +8,25 @@ Description: A module for txt
 """
 
 
-class vujade_txt:
-    def __init__(self, _path_filename: str, _mode: str) -> None:
-        self.path_filename = _path_filename
+class TEXT(object):
+    def __init__(self, _spath_filename: str, _mode: str) -> None:
+        super(TEXT, self).__init__()
+        self.spath_filename = _spath_filename
         self.mode = _mode
 
     def read_lines(self) -> list:
-        with open(self.path_filename, mode=self.mode) as f:
+        with open(self.spath_filename, mode=self.mode) as f:
             lines = f.readlines()
 
         return lines
 
     def write(self, _str: str) -> None:
-        with open(self.path_filename, mode=self.mode) as f:
+        with open(self.spath_filename, mode=self.mode) as f:
             f.write(_str)
 
 
-def txt2dict(_path_txt: str) -> dict:
-    with open(_path_txt, mode='r') as f:
+def txt2dict(_spath_filename: str) -> dict:
+    with open(_spath_filename, mode='r') as f:
         res = dict(line.rstrip().split(None, 1) for line in f)
 
     return res

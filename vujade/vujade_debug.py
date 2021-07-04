@@ -15,7 +15,7 @@ import numpy as np
 import torch
 
 
-class DEBUG:
+class DEBUG(object):
     def __init__(self):
         self.fileName = None
         self.lineNumber = None

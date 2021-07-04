@@ -14,7 +14,7 @@ import logging.handlers
 from colorlog import ColoredFormatter
 
 
-class vujade_logger:
+class Logger(object):
     def __init__(self, _path_log, _mode='a', _fmt='[%(asctime)s] [%(levelname)s (%(process)s)]: %(message)s', _level=logging.DEBUG):
         self.path_log = _path_log
         self.mode = _mode
@@ -57,7 +57,7 @@ class vujade_logger:
         self.logger_warnings.addHandler(hdlr=streamHandler)
 
 
-class vujade_print2logger:
+class Print2Logger(object):
     def __init__(self, _path_log, _mode='a'):
         self.path_log = _path_log
         self.mode = _mode

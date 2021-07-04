@@ -20,6 +20,7 @@ import subprocess
 import shutil
 import psutil
 import re
+import traceback
 import pickle
 import numpy as np
 import scipy
@@ -35,6 +36,29 @@ from itertools import product, compress
 from vujade import vujade_debug as debug_
 
 
+class DEBUG(object):
+    def __init__(self):
+        self.fileName = None
+        self.lineNumber = None
+        self.reTraceStack = re.compile('File \"(.+?)\", line (\d+?), .+')
+
+    def get_file_line(self):
+        for line in traceback.format_stack()[::-1]:
+            m = re.match(self.reTraceStack, line.strip())
+            if m:
+                fileName = m.groups()[0]
+
+                # ignore case
+                if fileName == __file__:
+                    continue
+                self.fileName = os.path.split(fileName)[1]
+                self.lineNumber = m.groups()[1]
+
+                return True
+
+        return False
+
+
 def deprecated(func):
     """
     Usage: @utils_.deprecated
@@ -46,12 +70,20 @@ def deprecated(func):
     """
     @functools.wraps(func)
     def new_func(*args, **kwargs):
+        debug_info = DEBUG()
+        debug_info.get_file_line()
+        info_str = 'The deprecated function, {} is called.'.format(func.__name__)
+        info_trace = '[{}: {}]: '.format(debug_info.fileName, debug_info.lineNumber) + info_str
+
+        print_color(_str=info_trace, _bcolor='WARNING')
         warnings.simplefilter('always', DeprecationWarning)
-        warnings.warn("Call to deprecated function {}.".format(func.__name__),
+        warnings.warn(info_str,
                       category=DeprecationWarning,
                       stacklevel=2)
         warnings.simplefilter('default', DeprecationWarning)
-        return func(*args, **kwargs)
+        raise Exception
+        # return func(*args, **kwargs)
+
     return new_func
 
 
@@ -74,11 +106,15 @@ def run_command(_command: str, _is_daemon: bool = False) -> dict:
         command = '{}'.format(_command)
 
     res_command = os.system(command)
+
     if res_command == 0:
-        res = get_pid_ppid(_command=_command)
+        try:
+            res = get_pid_ppid(_command=_command)
+        except Exception as e:
+            res = dict()
         res['is_success'] = True
     else:
-        res = {}
+        res = dict()
         res['is_success'] = False
 
     return res
@@ -130,7 +166,7 @@ def get_hash(_path_file: str, _hash: str = 'md5', _is_print: bool = True) -> str
     else:
         raise ValueError('The argument, _hash, may be incorrect.')
 
-    with open(_path_file, "rb") as f:
+    with open(_path_file, 'rb') as f:
         data = f.read()
         res = func(data).hexdigest()
 
@@ -247,7 +283,7 @@ def print_info(_var, _print_var=False):
         print('type: {}'.format(type(_var)))
 
 
-def print_color(_str, _bcolor='WARNING'):
+def print_color(_str: str, _bcolor: str = 'WARNING') -> None:
     bcolors = {'HEADER':'\033[95m',
                'OKBLUE':'\033[94m',
                'OKGREEN':'\033[92m',
@@ -259,12 +295,12 @@ def print_color(_str, _bcolor='WARNING'):
     print(bcolors[_bcolor] + _str + bcolors['ENDC'])
 
 
-def pause(_str='<Press enter/return to continue>'):
+def pause(_str: str = '<Press enter/return to continue>') -> None:
     debug_.printf(_str)
 
 
-def endl():
-    print("")
+def endl() -> None:
+    print('')
 
 
 def print_full_ndarray():

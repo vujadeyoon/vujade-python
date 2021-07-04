@@ -20,7 +20,7 @@ from vujade import vujade_resource as rsc_
 from vujade import vujade_utils as utils_
 
 
-class DEBUG:
+class DEBUG(object):
     def __init__(self):
         self.fileName = None
         self.lineNumber = None
@@ -43,7 +43,7 @@ class DEBUG:
         return False
 
 
-class IntegratedProfiler:
+class IntegratedProfiler(object):
     def __init__(self, _pid: int = utils_.getpid(), _gpu_id: int = 0) -> None:
         self.prof_time = TimeProfiler()
         self.prof_mem_main = MainMemoryProfiler(_pid=_pid)
@@ -239,7 +239,7 @@ class AverageMeterGPUMemory(rsc_.GPUMemory):
         self.mem_max = max(self.mem_list)
 
 
-class AverageMeterTime:
+class AverageMeterTime(object):
     """This class is intended to profile the processing time"""
     def __init__(self, _warmup: int = 0):
         """
@@ -270,7 +270,7 @@ class AverageMeterTime:
         self.fps_avg = 1 / (self.time_avg + self.eps_val)
 
 
-class AverageMeterValue:
+class AverageMeterValue(object):
     def __init__(self, **kwargs):
         self.cnt_call = 0
         self.keys = list(kwargs.keys())

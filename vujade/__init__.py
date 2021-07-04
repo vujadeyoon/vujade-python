@@ -8,9 +8,10 @@ Description: A method-wrapper for the package, vujade.
 """
 
 
-__date__ = '210630'
-__version__ = '0.3.6'
-__all__ = ['vujade_argparse',
+__date__ = '210704'
+__version__ = '0.3.7'
+__all__ = ['main_profiler',
+           'vujade_argparse',
            'vujade_aws',
            'vujade_compression',
            'vujade_csv',
@@ -37,9 +38,9 @@ __all__ = ['vujade_argparse',
            'vujade_resource',
            'vujade_str',
            'vujade_tensorboard',
+           'vujade_text',
            'vujade_time',
            'vujade_transforms',
-           'vujade_txt',
            'vujade_utils',
            'vujade_videocv',
            'vujade_yaml'

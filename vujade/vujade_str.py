@@ -25,7 +25,11 @@ def remove_multiple_whitespace(_str: str) -> str:
     return ' '.join(_str.split())
 
 
-def str2dict_2(_str: str) -> dict:
+def str2dict_v1(_str: str) -> dict:
+    return dict(line.rstrip().split(None, 1) for line in _str.splitlines())
+
+
+def str2dict_v2(_str: str) -> dict:
     res = {}
     for _idx, _line in enumerate(_str.splitlines()):
         key_val = _line.rstrip().split(None, 1)
@@ -37,8 +41,8 @@ def str2dict_2(_str: str) -> dict:
     return res
 
 
-def str2dict_1(_str: str) -> dict:
-    return dict(line.rstrip().split(None, 1) for line in _str.splitlines())
+def str2dict_v3(_str: str) -> dict:
+    return json.loads(_str)
 
 
 def str2bool(_v: Union[str, bool]) -> bool:

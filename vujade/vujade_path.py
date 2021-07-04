@@ -13,7 +13,7 @@ import glob
 import sys
 import pathlib
 import shutil
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Optional
 
 
 class Path(object):
@@ -56,6 +56,16 @@ class Path(object):
         else:
             if _missing_ok is False:
                 raise FileNotFoundError('The file, {} is not existed.'.format(self.str))
+
+    def rmdir(self) -> None:
+        self.path.rmdir()
+
+    def rmtree(self, _ignore_errors: bool = False, _onerror:Optional[set] = None) -> None:
+        if self.path.is_dir() is True:
+            try:
+                shutil.rmtree(path=self.str, ignore_errors=_ignore_errors, onerror=_onerror)
+            except Exception as e:
+                print('The rmtree is failed with exception: {}'.format(e))
 
     def cd(self) -> None:
         os.chdir(self.str)

@@ -25,7 +25,7 @@ else:
 
 
 
-class BaseMetricMeter():
+class BaseMetricMeter(object):
     def __init__(self):
         self.initialized = False
         self.val = None

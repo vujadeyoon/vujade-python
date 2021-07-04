@@ -12,17 +12,18 @@ import requests
 import shutil
 
 
-class vujade_download:
+class Download(object):
     def __init__(self):
         pass
 
-    def run(self, _url: str, _path_filename: str) -> bool:
+    @staticmethod
+    def run(_url: str, _spath_filename: str) -> bool:
         r = requests.get(_url, stream=True)
 
         if r.status_code == 200:
             r.raw.decode_content = True
 
-            with open(_path_filename, 'wb') as f:
+            with open(_spath_filename, 'wb') as f:
                 shutil.copyfileobj(r.raw, f)
 
             res = True

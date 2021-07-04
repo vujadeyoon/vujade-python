@@ -13,7 +13,7 @@ def enum(*sequential, **named):
     return type('Enum', (), enums)
 
 
-class stack(list):
+class Stack(list):
     """
     Usage:
         1) s = Stack()
@@ -22,7 +22,7 @@ class stack(list):
     """
 
     def __init__(self, _init_list=None):
-        super(stack, self).__init__()
+        super(Stack, self).__init__()
         if _init_list is not None:
             self._init(_list=_init_list)
 
@@ -43,7 +43,7 @@ class stack(list):
         return self[-1]
 
 
-class queue(list):
+class Queue(list):
     """
     Usage:
         1) q = Queue()
@@ -52,7 +52,7 @@ class queue(list):
     """
 
     def __init__(self, _init_list=None):
-        super(queue, self).__init__()
+        super(Queue, self).__init__()
         if _init_list is not None:
             self._init(_list=_init_list)
 

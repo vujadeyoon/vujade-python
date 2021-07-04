@@ -12,7 +12,7 @@ Description: A module for multi-thread
 import abc
 
 
-class ThreadBase(metaclass=abc.ABCMeta):
+class BaseThread(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def _lock(self):
         pass

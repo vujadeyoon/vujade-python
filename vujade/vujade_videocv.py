@@ -34,7 +34,7 @@ def encode_vid2vid(_path_video_src, _path_video_dst):
     os.system('ffmpeg -i {} {}'.format(_path_video_src, _path_video_dst))
 
 
-class VideoReaderFFmpeg:
+class VideoReaderFFmpeg(object):
     def __init__(self, _path_video, _channel=3, _pix_fmt='bgr24'):
         self.path_video = _path_video
         video_info = self._get_info()
@@ -87,7 +87,7 @@ class VideoReaderFFmpeg:
         return next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
 
 
-class VideoWriterFFmpeg:
+class VideoWriterFFmpeg(object):
     def __init__(self, _path_video, _resolution=(1080, 1920), _fps=30.0, _qp_val=0, _pix_fmt='bgr24', _codec='libx264'):
         if _path_video is None:
             raise ValueError('The parameter, _path_video, should be assigned.')
@@ -118,7 +118,7 @@ class VideoWriterFFmpeg:
         self.wri.wait()
 
 
-class VideoReaderCV:
+class VideoReaderCV(object):
     def __init__(self, _path_video: str, _sec_start: int = None, _sec_end: int = None) -> None:
         if _path_video is None:
             raise ValueError('The parameter, _path_video, should be assigned.')
@@ -297,7 +297,7 @@ class VideoReaderCV:
         self.cap.release()
 
 
-class VideoWriterCV:
+class VideoWriterCV(object):
     def __init__(self, _path_video, _resolution=(1920, 1080), _fps=30.0, _fourcc=cv2.VideoWriter_fourcc(*'MJPG')):
         if _path_video is None:
             raise ValueError('The variable, _path_video, should be assigned.')
@@ -320,7 +320,7 @@ class VideoWriterCV:
         self.wri.release()
 
 
-class SceneChangeDetectorFFmpeg:
+class SceneChangeDetectorFFmpeg(object):
     """This class is intended to detect scene change for the given video.
     The reference is as follows: https://rusty.today/posts/ffmpeg-scene-change-detector.
     The corresponding FFmpeg is as below.
@@ -357,7 +357,7 @@ class SceneChangeDetectorFFmpeg:
         return list(np.round(np.array(_list) / _unit, _decimals))
 
 
-class SceneChangeDetectorFFmpegInteractiveProcessing:
+class SceneChangeDetectorFFmpegInteractiveProcessing(object):
     """This class is intended to detect scene change for the given video.
     The reference is as follows: https://rusty.today/posts/ffmpeg-scene-change-detector.
     The corresponding FFmpeg is as below.
@@ -488,7 +488,7 @@ class SceneChangeDetectorFFmpegInteractiveProcessing:
         self.cnt_call += 1
 
 
-class SceneChangeDetectorFFmpegBatchProcessing:
+class SceneChangeDetectorFFmpegBatchProcessing(object):
     """This class is intended to detect scene change for the given video.
     The reference is as follows: https://rusty.today/posts/ffmpeg-scene-change-detector.
     The corresponding FFmpeg is as below.

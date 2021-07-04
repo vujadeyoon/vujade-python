@@ -22,7 +22,7 @@ from vujade import vujade_imgcv as imgcv_
 from vujade import vujade_utils as utils_
 
 
-class Compose():
+class Compose(object):
     # Composes several co_transforms together.
     # For example:
     # >>> co_transforms.Compose([
@@ -40,7 +40,7 @@ class Compose():
         return inputs, target
 
 
-class Normalizes():
+class Normalizes(object):
     def __init__(self, _normalize_type='min_max', _min_max=(0.0, 255.0), _rescale_range=(-1.0, 1.0), _mean=(0.0, 0.0, 0.0), _std=(1.0, 1.0, 1.0)):
         self.ndarr_normalize = NdarrNormalize(_normalize_type=_normalize_type, _min_max=_min_max, _rescale_range=_rescale_range, _mean=_mean, _std=_std)
         self.tensor_normalize = TensorNormalize(_normalize_type=_normalize_type, _min_max=_min_max, _rescale_range=_rescale_range, _mean=_mean, _std=_std)
@@ -58,7 +58,7 @@ class Normalizes():
         return _inputs, _target
 
 
-class ToTensors():
+class ToTensors(object):
     def __init__(self):
         self.totensor = ToTensor()
 
@@ -68,7 +68,7 @@ class ToTensors():
         return tensor_inputs, tensor_target
 
 
-class ToTensors_with_Normalize():
+class ToTensors_with_Normalize(object):
     def __init__(self, _normalize_type='min_max', _min_max=([0.0, 255.0], [0.0, 255.0]), _rescale_range=([-1.0, 1.0], [-1.0, 1.0]), _mean=([0.0, 0.0, 0.0], [0.0, 0.0, 0.0]), _std=([1.0, 1.0, 1.0], [1.0, 1.0, 1.0])):
         self.normalize_type = _normalize_type
         self.min_max = _min_max
@@ -87,7 +87,7 @@ class ToTensors_with_Normalize():
         return tensor_inputs, tensor_target
 
 
-class Resize():
+class Resize(object):
     def __init__(self, _size, _interp=cv2.INTER_CUBIC):
         self.output_sz = _size
         self.interp = _interp
@@ -109,7 +109,7 @@ class Resize():
         return res_intputs, res_target
 
 
-class RandomHorizontalFlip():
+class RandomHorizontalFlip(object):
     """
     Randomly horizontally flips the given ndarray with a probability of 0.5
     """
@@ -124,7 +124,7 @@ class RandomHorizontalFlip():
         return _inputs, _target
 
 
-class RandomVerticalFlip():
+class RandomVerticalFlip(object):
     """
     Randomly horizontally flips the given ndarray with a probability of 0.5
     """
@@ -139,7 +139,7 @@ class RandomVerticalFlip():
         return _inputs, _target
 
 
-class RandomRotate90():
+class RandomRotate90(object):
     """
     Randomly rotate the given ndarray with 90 degree num_rot-times.
     """
@@ -155,7 +155,7 @@ class RandomRotate90():
         return _inputs, _target
 
 
-class RandomRotate():
+class RandomRotate(object):
     """
     The imgaug-python-package based random rotate transform
     Usage:
@@ -182,7 +182,7 @@ class RandomRotate():
         return _inputs, _target
 
 
-class RandomShearX():
+class RandomShearX(object):
     """
     The imgaug-python-package based random shear transform with x-axis
     """
@@ -201,7 +201,7 @@ class RandomShearX():
         return _inputs, _target
 
 
-class RandomShearY():
+class RandomShearY(object):
     """
     The imgaug-python-package based random shear transform with y-axis
     """
@@ -220,7 +220,7 @@ class RandomShearY():
         return _inputs, _target
 
 
-class RandomPerspective():
+class RandomPerspective(object):
     """
     The imgaug-python-package based random perspective transform
     """
@@ -239,7 +239,7 @@ class RandomPerspective():
         return _inputs, _target
 
 
-class RandomElastic():
+class RandomElastic(object):
     """
     The imgaug-python-package based random elastic transform
     """
@@ -261,7 +261,7 @@ class RandomElastic():
         return _inputs, _target
 
 
-class RandomSpatialShuffle():
+class RandomSpatialShuffle(object):
     """
     The novel image augmentation that is called RandomSpatialShuffle
     """
@@ -295,7 +295,7 @@ class RandomSpatialShuffle():
         return _inputs, _target
 
 
-class RandomCutMoireBackward():
+class RandomCutMoireBackward(object):
     def __init__(self, _size=(32, 32), _prob=0.5):
         self.height_new = _size[0]
         self.width_new = _size[1]
@@ -319,7 +319,7 @@ class RandomCutMoireBackward():
         return _inputs, _target
 
 
-class GuidedFilterForward():
+class GuidedFilterForward(object):
     """
     GuidedFilterForward
     Usage:
@@ -359,7 +359,7 @@ class GuidedFilterForward():
         return _inputs, _target
 
 
-class NdarrNormalize():
+class NdarrNormalize(object):
     def __init__(self, _normalize_type='min_max', _min_max=(0.0, 255.0), _rescale_range=(-1.0, 1.0), _mean=(0.0, 0.0, 0.0), _std=(1.0, 1.0, 1.0)):
         self.normalize_type = _normalize_type
         self.min = _min_max[0]
@@ -401,7 +401,7 @@ class NdarrNormalize():
         return (_ndarr - self.min) / self.diff_min_max_range
 
 
-class NdarrDenormalize():
+class NdarrDenormalize(object):
     def __init__(self, _normalize_type='min_max', _min_max=(0.0, 255.0), _rescale_range=(-1.0, 1.0), _mean=(0.0, 0.0, 0.0), _std=(1.0, 1.0, 1.0)):
         self.normalize_type = _normalize_type
         self.min = _min_max[0]
@@ -442,7 +442,7 @@ class NdarrDenormalize():
         return (self.diff_min_max_range * _ndarr) + self.min
 
 
-class TensorNormalize():
+class TensorNormalize(object):
     def __init__(self, _normalize_type='min_max', _min_max=(0.0, 255.0), _rescale_range=(-1.0, 1.0), _mean=(0.0, 0.0, 0.0), _std=(1.0, 1.0, 1.0)):
         self.normalize_type = _normalize_type
         self.min = _min_max[0]
@@ -483,7 +483,7 @@ class TensorNormalize():
 
 
 
-class TensorDenormalize():
+class TensorDenormalize(object):
     def __init__(self, _normalize_type='min_max', _min_max=(0.0, 255.0), _rescale_range=(-1.0, 1.0), _mean=(0.0, 0.0, 0.0), _std=(1.0, 1.0, 1.0)):
         self.normalize_type = _normalize_type
         self.min = _min_max[0]
@@ -522,12 +522,12 @@ class TensorDenormalize():
         return _tensor.mul(self.diff_min_max_range).add(self.min)
 
 
-class ToTensor():
+class ToTensor(object):
     def __call__(self, _ndarr):
         return _totensor(_ndarr=_ndarr)
 
 
-class ToNdarr():
+class ToNdarr(object):
     def __call__(self, _tensor):
         return _tondarr(_tensor=_tensor)
 
