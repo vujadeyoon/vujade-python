@@ -79,8 +79,12 @@ def strlist2list(_str: str) -> list:
     return json.loads(_str) # ast.literal_eval(_str_list)
 
 
-def str2bash_parentheses(_str: str) -> str:
-    res = _str.replace('(', '\(')
-    res = res.replace(')', '\)')
+def str_python2bash(_str: str) -> str:
+    res = _str
+    special_characters = {'(', ')', "'", '"', '<', '>', ':'}
+
+    for _idx, _char in enumerate(special_characters):
+        res = res.replace(_char, '\\'+_char)
 
     return res
+

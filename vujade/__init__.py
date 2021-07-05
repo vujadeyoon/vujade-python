@@ -8,8 +8,8 @@ Description: A method-wrapper for the package, vujade.
 """
 
 
-__date__ = '210704'
-__version__ = '0.3.7'
+__date__ = '210706'
+__version__ = '0.3.8'
 __all__ = ['main_profiler',
            'vujade_argparse',
            'vujade_aws',
