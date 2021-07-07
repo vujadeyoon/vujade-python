@@ -1,4 +1,7 @@
-"""
+"""# cnt = 0
+        # while True:
+        #     print('[{}]: {}'.format(cnt, self.pid))
+        #     cnt += 1
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade
@@ -23,7 +26,7 @@ def get_img_extension() -> Set[str]:
     return {'.bmp', '.jpg', 'jpeg', '.png'}
 
 
-class _ImWriterMP(multiprocess_._BaseMultiProcess):
+class _ImWriterMP(multiprocess_.BaseMultiProcess):
     def __init__(self, _num_proc=os.cpu_count()):
         super(_ImWriterMP, self).__init__(_target_method=self._target_method, _num_proc=_num_proc)
 

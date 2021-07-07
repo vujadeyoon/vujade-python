@@ -204,8 +204,24 @@ class GPUMemory(object):
 
 
 class LimitRunTime(object):
-    def __init__(self, _limit_sec, _pid=utils_.getpid()):
-        self.limit_sec = _limit_sec
+    def __init__(self, _limit_sec: int, _pid: int = utils_.getpid()) -> None:
+        """
+        Usage:
+            Arguments:
+                _lmit_sec: only support second.
+
+            class Test(rsc_.LimitRunTime):
+                def __init__(self, _limit_sec, _pid=utils_.getpid()):
+                    super(Test, self).__init__(_limit_sec, _pid=_pid)
+                    self.pid = _pid
+
+                def run(self):
+                    cnt = 0
+                    while True:
+                        print('[{}]: {}'.format(cnt, self.pid))
+                        cnt += 1
+        """
+        self.limit_sec = int(math.floor(_limit_sec))
         self.pid = _pid
         soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
         resource.setrlimit(resource.RLIMIT_CPU, (_limit_sec, hard))
@@ -216,7 +232,7 @@ class LimitRunTime(object):
 
 
 class LimitRunTimeFunc(object):
-    def __init__(self, _limit_sec):
+    def __init__(self, _limit_sec: int) -> None:
         """
         Arguments:
             _lmit_sec: only support second.
@@ -226,18 +242,23 @@ class LimitRunTimeFunc(object):
                 time_start = time.time()
                 while True:
                     print('elapsed time: {:.2f}, {}'.format(time.time() - time_start, _a + _b))
+
             limit_func = LimitRunTimeFunc(_limit_sec=1.0)
             limit_func.run(test, (10, 20))
+            print('is_success: {}'.format(limit_func.is_success))
         """
         self.limit_sec = int(math.floor(_limit_sec))
+        self.is_success = None
 
     def run(self, _func, args=(), kwargs={}):
         try:
             with self._time_limit():
                 _func(*args, **kwargs)
+            self.is_success = True
         except self._TimeoutException as e:
             print('The function [{}] will be terminated because the runtime '
                   'is exceeded its limit [{:.2f}] second.'.format(_func, self.limit_sec))
+            self.is_success = False
 
     @contextlib.contextmanager
     def _time_limit(self):
@@ -257,13 +278,13 @@ class LimitRunTimeFunc(object):
 
 
 class LimitRunTimeFuncDecorator(object):
-    def __init__(self, _limit_sec):
+    def __init__(self, _limit_sec: int) -> None:
         """
         Arguments:
             _lmit_sec: only support second.
 
         Usage:
-            @LimitRunTimeDecorator(_limit_sec=1.0)
+            @LimitRunTimeFuncDecorator(_limit_sec=1.0)
             def test(_a, _b):
                 time_start = time.time()
                 while True:

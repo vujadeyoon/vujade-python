@@ -79,7 +79,7 @@ def strlist2list(_str: str) -> list:
     return json.loads(_str) # ast.literal_eval(_str_list)
 
 
-def str_python2bash(_str: str) -> str:
+def str_py2bash(_str: str) -> str:
     res = _str
     special_characters = {'(', ')', "'", '"', '<', '>', ':'}
 
@@ -87,4 +87,3 @@ def str_python2bash(_str: str) -> str:
         res = res.replace(_char, '\\'+_char)
 
     return res
-

@@ -10,6 +10,7 @@ Description: A module for yaml.
 
 import yaml
 
+
 class YAML(object):
     def __init__(self, _spath_filename):
         super(YAML, self).__init__()

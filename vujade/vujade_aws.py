@@ -73,7 +73,7 @@ class BaseAWS(object):
         download_.Download.run(_url=url_awscliv2_zip, _spath_filename=path_awscliv2_zip.str)
         zip_awscliv2 = comp_.Zip()
         zip_awscliv2.decompress(_spath_zip=path_awscliv2_zip.str, _d=None)
-        utils_.run_command('sudo {}/install'.format(path_awscliv2))
+        utils_.SystemCommand.run(_command='sudo {}/install'.format(path_awscliv2))
 
         # Remove the temporary file and directory.
         path_awscliv2_zip.unlink(_missing_ok=True)
@@ -97,14 +97,14 @@ class BaseAWS(object):
 
     @utils_.deprecated
     def enroll_credentials(self, _spath_aws: str, _region: str = 'ap-northeast-2', _output: str = 'json') -> None:
-        utils_.run_command('rm -rf {}'.format(_spath_aws))
-        utils_.run_command('mkdir -p {}'.format(_spath_aws))
-        utils_.run_command('echo \'[default]\' >> {}/credentials'.format(_spath_aws))
-        utils_.run_command('echo \'aws_access_key_id = ' + self.access_key + '\' >> {}/credentials'.format(_spath_aws))
-        utils_.run_command('echo \'aws_secret_access_key = ' + self.secret_key + '\' >> {}/credentials'.format(_spath_aws))
-        utils_.run_command('echo \'[default]\' >> {}/config'.format(_spath_aws))
-        utils_.run_command('echo \'region = ' + _region + '\' >> {}/config'.format(_spath_aws))
-        utils_.run_command('echo \'output = ' + _output + '\' >> {}/config'.format(_spath_aws))
+        utils_.SystemCommand.run(_command='rm -rf {}'.format(_spath_aws))
+        utils_.SystemCommand.run(_command='mkdir -p {}'.format(_spath_aws))
+        utils_.SystemCommand.run(_command='echo \'[default]\' >> {}/credentials'.format(_spath_aws))
+        utils_.SystemCommand.run(_command='echo \'aws_access_key_id = ' + self.access_key + '\' >> {}/credentials'.format(_spath_aws))
+        utils_.SystemCommand.run(_command='echo \'aws_secret_access_key = ' + self.secret_key + '\' >> {}/credentials'.format(_spath_aws))
+        utils_.SystemCommand.run(_command='echo \'[default]\' >> {}/config'.format(_spath_aws))
+        utils_.SystemCommand.run(_command='echo \'region = ' + _region + '\' >> {}/config'.format(_spath_aws))
+        utils_.SystemCommand.run(_command='echo \'output = ' + _output + '\' >> {}/config'.format(_spath_aws))
 
 
 class S3(BaseAWS):

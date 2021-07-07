@@ -19,10 +19,10 @@ import glob
 import subprocess
 import shutil
 import psutil
+import multiprocessing
 import re
 import traceback
 import pickle
-import numpy as np
 import scipy
 import scipy.io
 import signal
@@ -30,8 +30,11 @@ import time
 import hashlib
 import functools
 import warnings
-import pprint as pprint_
+import math
 import torch
+import numpy as np
+import pprint as pprint_
+from typing import Optional
 from itertools import product, compress
 from vujade import vujade_debug as debug_
 
@@ -99,25 +102,84 @@ def run_command_stdout(_command: list) -> (str, str):
     return str_stdout, str_stderr
 
 
-def run_command(_command: str, _is_daemon: bool = False) -> dict:
-    if _is_daemon is True:
-        command = '{} &'.format(_command)
-    else:
-        command = '{}'.format(_command)
+def system_stdout(_str: str) -> None:
+    sys.stdout.write('\r'+_str)
 
-    res_command = os.system(command)
 
-    if res_command == 0:
-        try:
-            res = get_pid_ppid(_command=_command)
-        except Exception as e:
-            res = dict()
-        res['is_success'] = True
-    else:
-        res = dict()
-        res['is_success'] = False
+class SystemCommand(object):
+    """
+    Usage:
+        print('[MAIN] Start: {}'.format(utils_.getpid()))
 
-    return res
+        cmd_1 = 'bash ./bash_test.sh'
+        cmd_2 = 'python3 ./test.py'
+
+        cmd = cmd_1 # or cmd_2
+
+        utils_.SystemCommand.run(_command=cmd)
+        utils_.SystemCommand.run_timeout(_limit_sec=5, _command=cmd, _is_daemon=False)
+
+        print('[MAIN] End: {}')
+    """
+    def __init__(self):
+        super(SystemCommand, self).__init__()
+
+    @classmethod
+    def run(cls, _command: str, _is_daemon: bool = False, _res: Optional[dict] = None) -> bool:
+        if _is_daemon is True:
+            command = '{} &'.format(_command)
+        else:
+            command = '{}'.format(_command)
+
+        res_command = os.system(command)
+
+        if res_command == 0:
+            is_success = True
+        else:
+            is_success = False
+
+        if _res is not None:
+            _res['is_success'] = is_success
+
+        return is_success
+
+    @classmethod
+    def run_timeout(cls, _limit_sec: int, _command: str, _is_daemon: bool = False) -> bool:
+        limit_sec = int(math.floor(_limit_sec))
+
+        # Process spawning
+        manager = multiprocessing.Manager()
+        p_res = manager.dict()
+
+        p = multiprocessing.Process(name=_command, target=cls.run, args=(_command, _is_daemon, p_res))
+        p.start()
+        p.join(timeout=limit_sec)
+
+        if p.is_alive():
+            # Time-out
+            # Get process information
+            proc_info = get_pid_ppid(_command=_command)
+            proc_parent = psutil.Process(proc_info['ppid'])
+            list_proc = [proc_parent]
+            for proc_child in proc_parent.children(recursive=True):
+                list_proc.append(proc_child)
+
+            # Terminate process recursively
+            for proc in list_proc[::-1]:  # reverse
+                proc.terminate()
+            res = False
+        else:
+            # Time-in or cls.run() does not work. (i.e. error)
+            if p_res['is_success'] is True:
+                # Time-in
+                res = True
+            else:
+                # cls.run() does not work. (i.e. error)
+                res = None
+
+        p.terminate()
+
+        return res
 
 
 def rmtree(_path_dir: str, _ignore_errors: bool = False, _onerror=None) -> int:
@@ -262,11 +324,11 @@ def getpid() -> int:
     return os.getpid()
 
 
-def getproc(_pid=getpid()):
+def getproc(_pid: int = getpid()) -> psutil.Process:
     return psutil.Process(_pid)
 
 
-def terminate_proc(_pid=getpid()):
+def terminate_proc(_pid: int = getpid()) -> None:
     p = psutil.Process(_pid)
     p.terminate()
 
