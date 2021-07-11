@@ -11,8 +11,7 @@ Description: A module for profiler
 import os
 import re
 import traceback
-import psutil
-import subprocess
+import functools
 import time
 import statistics
 import numpy as np
@@ -41,6 +40,39 @@ class DEBUG(object):
                 return True
 
         return False
+
+
+def measure_time(_iter: int = 1):
+    """
+    Usage: @prof_.measure_time(_iter=1)
+           def test(_arg):
+               pass
+    Description: This is a decorator which can be used to measured the elapsed time for a callable function.
+    """
+    if _iter < 1:
+        raise ValueError('The _iter, {} should be greater than 0.'.format(_iter))
+
+    def _measure_time(_func):
+        @functools.wraps(_func)
+        def _wrapper(*args, **kwargs):
+            debug_info = DEBUG()
+            debug_info.get_file_line()
+
+            result = None
+            time_cumsum = 0.0
+            for _ in range(_iter):
+                time_start = time.time()
+                result = _func(*args, **kwargs)
+                time_end = time.time()
+                time_cumsum += (time_end - time_start)
+
+            info_trace_1 = '[{}: {}]:'.format(debug_info.fileName, debug_info.lineNumber)
+            info_trace_2 = 'The function, {} is called.'.format(_func.__name__)
+            info_trace_3 = 'Total time for {} times: {:.2e} sec. Avg. time: {:.2e} sec.'.format(_iter, time_cumsum, time_cumsum / _iter)
+            print('{} {} {}'.format(info_trace_1, info_trace_2, info_trace_3))
+            return result
+        return _wrapper
+    return _measure_time
 
 
 class IntegratedProfiler(object):

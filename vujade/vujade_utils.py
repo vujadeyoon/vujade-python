@@ -62,7 +62,7 @@ class DEBUG(object):
         return False
 
 
-def deprecated(func):
+def deprecated(_func):
     """
     Usage: @utils_.deprecated
            def test(_arg):
@@ -71,11 +71,11 @@ def deprecated(func):
                  It will result in a warning being emitted when the function is used.
     Reference: https://pythonq.com/so/python/31146
     """
-    @functools.wraps(func)
-    def new_func(*args, **kwargs):
+    @functools.wraps(_func)
+    def _wrapper(*args, **kwargs):
         debug_info = DEBUG()
         debug_info.get_file_line()
-        info_str = 'The deprecated function, {} is called.'.format(func.__name__)
+        info_str = 'The deprecated function, {} is called.'.format(_func.__name__)
         info_trace = '[{}: {}]: '.format(debug_info.fileName, debug_info.lineNumber) + info_str
 
         print_color(_str=info_trace, _bcolor='WARNING')
@@ -85,9 +85,8 @@ def deprecated(func):
                       stacklevel=2)
         warnings.simplefilter('default', DeprecationWarning)
         raise Exception
-        # return func(*args, **kwargs)
-
-    return new_func
+        # return _func(*args, **kwargs)
+    return _wrapper
 
 
 def find_substr(_str_src: str, _str_sub: str) -> list:

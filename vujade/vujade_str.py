@@ -77,13 +77,3 @@ def strtuple2tuple(_str: str) -> tuple:
 
 def strlist2list(_str: str) -> list:
     return json.loads(_str) # ast.literal_eval(_str_list)
-
-
-def str_py2bash(_str: str) -> str:
-    res = _str
-    special_characters = {'(', ')', "'", '"', '<', '>', ':'}
-
-    for _idx, _char in enumerate(special_characters):
-        res = res.replace(_char, '\\'+_char)
-
-    return res
