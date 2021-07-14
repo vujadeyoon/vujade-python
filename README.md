@@ -13,7 +13,7 @@
     - Once you're comfortable with vujade, you don't need to search the internet to see how to use functions and classes.
 - I recommend that you should ignore the commented instructions with an octothorpe, #.
 - Modified date: July 14, 2021.
-- Version: 0.4.1
+- Version: 0.4.2
 
 
 ## 2. License <a name="license"></a>
