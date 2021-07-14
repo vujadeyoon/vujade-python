@@ -23,9 +23,9 @@ class JSON(object):
 
         return data
 
-    def write(self, _dict_data: dict, _indent: int = 4) -> None:
+    def write(self, _dict_data: dict, _indent: int = 4, _ensure_ascii: bool = True) -> None:
         with open(self.spath_filename, self.mode) as f:
-            json.dump(_dict_data, f, indent=_indent)
+            json.dump(_dict_data, f, indent=_indent, ensure_ascii=_ensure_ascii)
 
     def pprint(self) -> None:
         print(json.dumps(self.read(), indent=2, sort_keys=True))

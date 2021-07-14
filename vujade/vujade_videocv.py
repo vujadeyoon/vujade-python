@@ -16,7 +16,7 @@ import ffmpeg
 import shlex
 import subprocess
 import json
-from typing import Set
+from typing import Optional, Set
 from vujade import vujade_utils as utils_
 from vujade.utils.SceneChangeDetection.InteractiveProcessing import scd as scd_ip_
 from vujade.utils.SceneChangeDetection.BatchProcessing import scd as scd_bp_
@@ -160,6 +160,7 @@ class VideoReaderCV(object):
             self.frame_end = int(self.sec_end * self.fps)
 
         self.num_frames = self.frame_end - self.frame_start + 1
+        self.is_random_access = self._check_random_access(_idx_frame=self.num_frames)
         self.idx_frame_curr = (self.frame_start - 1)
         self.num_frames_remain = self.frame_end - self.frame_start + 1
         self.frame_timestamps = []
@@ -192,7 +193,7 @@ class VideoReaderCV(object):
                     break
                 self._read(_is_record_timestamp=False)
         else:
-            self.cap.set(cv2.CAP_PROP_POS_FRAMES, _idx_frame)
+            self._set_idx_frame(_idx_frame=_idx_frame)
             self.idx_frame_curr = (_idx_frame - 1)
             self.num_frames_remain = self._update_num_frames_reamin()
             self._cal_eof()
@@ -238,6 +239,23 @@ class VideoReaderCV(object):
             orientation = 'vertical'
 
         return orientation
+
+    def _get_idx_frame(self) -> int:
+        return int(self.cap.get(cv2.CAP_PROP_POS_FRAMES))
+
+    def _set_idx_frame(self, _idx_frame: int) -> None:
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, _idx_frame)
+
+    def _check_random_access(self, _idx_frame: Optional[int]) -> bool:
+        if _idx_frame is None:
+            _idx_frame = self.num_frames
+
+        idx_frame_curr = self._get_idx_frame()
+        self._set_idx_frame(_idx_frame=_idx_frame)
+        res = (self.cap.get(cv2.CAP_PROP_POS_FRAMES) == self.num_frames)
+        self._set_idx_frame(_idx_frame=idx_frame_curr)
+
+        return res
 
     def imread(self, _num_batch_frames: int = 1, _trans: tuple = None, _set_idx_frame: int = None, _dsize: tuple = None, _color_code: int = None, _interpolation: int = cv2.INTER_LINEAR) -> np.ndarray:
         if (_dsize is None) or (_dsize == (self.width, self.height)):
