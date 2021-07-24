@@ -11,8 +11,10 @@ Description: A module for debug
 import os
 import re
 import traceback
-import numpy as np
+import inspect
 import torch
+import numpy as np
+from vujade import vujade_utils as utils_
 
 
 class DEBUG(object):
@@ -38,11 +40,7 @@ class DEBUG(object):
         return False
 
 
-def printf(*_args, **_kwargs) -> None:
-    _print = input
-    if ('_is_pause' in _kwargs.keys()) and (_kwargs['_is_pause'] is False):
-        _print = print
-
+def printf(*_args, **_kwargs) -> str:
     debug_info = DEBUG()
     debug_info.get_file_line()
 
@@ -53,7 +51,36 @@ def printf(*_args, **_kwargs) -> None:
 
     info_trace = '[{}: {}]: '.format(debug_info.fileName, debug_info.lineNumber) + info_str
 
-    _print(info_trace)
+    if ('_is_pause' in _kwargs.keys()) and (_kwargs['_is_pause'] is False):
+        _print = print
+    else:
+        _print = input
+
+    if ('_is_print' in _kwargs.keys()) and (_kwargs['_is_print'] is False):
+        pass
+    else:
+        _print(info_trace)
+
+    return info_trace
+
+
+def pprintf(*_args, **_kwargs) -> str:
+    # Usage: pprintf('var1', 'var2')
+
+    called = inspect.currentframe().f_back.f_locals
+    called_keys = called.keys()
+
+    info_str = ''
+    for _idx, _arg in enumerate(_args):
+        if _arg in called_keys:
+            info_str += '{}: {}, '.format(_arg, called[_arg])
+        else:
+            utils_.print_color(_str='The local variable, {} is not defined.'.format(_arg), _bcolor='WARNING')
+    info_str = info_str.rstrip(', ')
+
+    info_trace = printf(info_str, **_kwargs)
+
+    return info_trace
 
 
 def debug(_print_str='', _var=None, _is_pause=True, _is_print_full=False):

@@ -13,10 +13,11 @@
 #          aws_access_key_id = <SECRET>
 #          aws_secret_access_key = <SECRET>
 #     ii)  Install: bash bash_goofys.sh
-#     iii) Mount AWS S3:
+#     iii) Search all buckets in the AWS S3: aws s3 ls
+#     iv)  Mount AWS S3:
 #          - goofys ${name_bucket} ${path_mountpoint}
 #          - goofys ${name_bucket}:${name_prefix} ${path_mountpoint} # if you only want to mount objects under a ${name_prefix}.
-#     iv)  Unmount AWS S3: umount ${path_mountpoint}
+#     v)   Unmount AWS S3: umount ${path_mountpoint}
 #
 #
 wget https://github.com/kahing/goofys/releases/download/v0.24.0/goofys

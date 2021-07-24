@@ -18,6 +18,7 @@ import subprocess
 import json
 from typing import Optional, Set
 from vujade import vujade_utils as utils_
+from vujade import vujade_list as list_
 from vujade.utils.SceneChangeDetection.InteractiveProcessing import scd as scd_ip_
 from vujade.utils.SceneChangeDetection.BatchProcessing import scd as scd_bp_
 
@@ -30,13 +31,14 @@ def get_vid_extension() -> Set[str]:
     return {'.avi', '.mp4', '.yuv'}
 
 
-def encode_vid2vid(_path_video_src, _path_video_dst):
-    os.system('ffmpeg -i {} {}'.format(_path_video_src, _path_video_dst))
+def encode_vid2vid(_spath_video_src: str, _spath_video_dst: str) -> bool:
+    cmd = 'ffmpeg -i {} {}'.format(_spath_video_src, _spath_video_dst)
+    return utils_.SystemCommand.run(_command=cmd, _is_daemon=False)
 
 
 class VideoReaderFFmpeg(object):
-    def __init__(self, _path_video, _channel=3, _pix_fmt='bgr24'):
-        self.path_video = _path_video
+    def __init__(self, _spath_video: str, _channel: int = 3, _pix_fmt: str = 'bgr24'):
+        self.spath_video = _spath_video
         video_info = self._get_info()
         self.height = video_info['height']
         self.width = video_info['width']
@@ -50,12 +52,12 @@ class VideoReaderFFmpeg(object):
 
         self.cap = (
             ffmpeg
-            .input(self.path_video)
+            .input(self.spath_video)
             .output('pipe:', format='rawvideo', pix_fmt=self.pix_fmt)
             .run_async(pipe_stdout=True)
         )
 
-    def imread(self, _num_batch_frames=1, _trans=(0, 3, 1, 2)):
+    def imread(self, _num_batch_frames: int = 1, _trans: tuple = (0, 3, 1, 2)) -> np.ndarray:
         if self.num_frames_remain < _num_batch_frames:
             _num_batch_frames = self.num_frames_remain # equivalent: %=
 
@@ -79,20 +81,20 @@ class VideoReaderFFmpeg(object):
 
         return frames
 
-    def _cal_eof(self):
+    def _cal_eof(self) -> None:
         self.is_eof = (self.num_frames_remain == 0)
 
-    def _get_info(self):
-        probe = ffmpeg.probe(self.path_video)
+    def _get_info(self) -> dict:
+        probe = ffmpeg.probe(self.spath_video)
         return next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
 
 
 class VideoWriterFFmpeg(object):
-    def __init__(self, _path_video, _resolution=(1080, 1920), _fps=30.0, _qp_val=0, _pix_fmt='bgr24', _codec='libx264'):
-        if _path_video is None:
-            raise ValueError('The parameter, _path_video, should be assigned.')
+    def __init__(self, _spath_video: str, _resolution: tuple = (1080, 1920), _fps: float = 30.0, _qp_val: int = 0, _pix_fmt: str = 'bgr24', _codec: str = 'libx264'):
+        if _spath_video is None:
+            raise ValueError('The parameter, _spath_video, should be assigned.')
 
-        self.path_video = _path_video
+        self.spath_video = _spath_video
         self.height = int(_resolution[0])
         self.width = int(_resolution[1])
         self.fps = float(_fps)
@@ -104,24 +106,24 @@ class VideoWriterFFmpeg(object):
             ffmpeg
             .input('pipe:', format='rawvideo', pix_fmt=self.pix_fmt, s='{}x{}'.format(self.width, self.height))
             .filter('fps', fps=self.fps, round='up')
-            .output(self.path_video, pix_fmt='yuv420p', **{'c:v': self.codec}, **{'qscale:v': self.qp_val})
+            .output(self.spath_video, pix_fmt='yuv420p', **{'c:v': self.codec}, **{'qscale:v': self.qp_val})
             .overwrite_output()
             .run_async(pipe_stdin=True)
         )
 
-    def imwrite(self, _list_img):
+    def imwrite(self, _list_img: list) -> None:
         for idx, img in enumerate(_list_img):
             self.wri.stdin.write(img)
 
-    def close(self):
+    def close(self) -> None:
         self.wri.stdin.close()
         self.wri.wait()
 
 
 class VideoReaderCV(object):
-    def __init__(self, _path_video: str, _sec_start: int = None, _sec_end: int = None) -> None:
-        if _path_video is None:
-            raise ValueError('The parameter, _path_video, should be assigned.')
+    def __init__(self, _spath_video: str, _sec_start: int = None, _sec_end: int = None) -> None:
+        if _spath_video is None:
+            raise ValueError('The parameter, _spath_video, should be assigned.')
 
         if (_sec_start is not None) and (isinstance(_sec_start, int) is False):
             raise ValueError('The parameter, _sec_start, should be None or integer.')
@@ -132,7 +134,7 @@ class VideoReaderCV(object):
         if (isinstance(_sec_start, int) is True) and (isinstance(_sec_end, int) is True) and (_sec_start >= _sec_end):
             raise ValueError('The parameter _sec_start should be lower than the parameter _sec_end.')
 
-        self.path_video = _path_video
+        self.spath_video = _spath_video
         self._open()
         self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -171,7 +173,7 @@ class VideoReaderCV(object):
         return self.cap.isOpened()
 
     def _open(self) -> None:
-        self.cap = cv2.VideoCapture(self.path_video)
+        self.cap = cv2.VideoCapture(self.spath_video)
 
         if self._is_open() is False:
             raise ValueError('The video capture is not opened.')
@@ -225,7 +227,7 @@ class VideoReaderCV(object):
         """
         cmd = "ffprobe -loglevel error -select_streams v:0 -show_entries stream_tags=rotate -of default=nw=1:nk=1"
         args = shlex.split(cmd)
-        args.append(self.path_video)
+        args.append(self.spath_video)
         ffprobe_output = subprocess.check_output(args).decode('utf-8')
         if len(ffprobe_output) > 0:  # Output of cmdis None if it should be 0
             ffprobe_output = json.loads(ffprobe_output)
@@ -316,25 +318,25 @@ class VideoReaderCV(object):
 
 
 class VideoWriterCV(object):
-    def __init__(self, _path_video, _resolution=(1920, 1080), _fps=30.0, _fourcc=cv2.VideoWriter_fourcc(*'MJPG')):
-        if _path_video is None:
-            raise ValueError('The variable, _path_video, should be assigned.')
+    def __init__(self, _spath_video: str, _resolution: tuple = (1920, 1080), _fps: float = 30.0, _fourcc: int = cv2.VideoWriter_fourcc(*'MJPG')):
+        if _spath_video is None:
+            raise ValueError('The variable, _spath_video, should be assigned.')
 
-        self.path_video = _path_video
+        self.spath_video = _spath_video
         self.width = int(_resolution[0])
         self.height = int(_resolution[1])
         self.fps = float(_fps)
         self.fourcc = _fourcc
         self.wri = self._open()
 
-    def imwrite(self, _list_img):
+    def imwrite(self, _list_img: list) -> None:
         for idx, img in enumerate(_list_img):
             self.wri.write(image=img)
 
-    def _open(self):
-        return cv2.VideoWriter(self.path_video, self.fourcc, self.fps, (self.width, self.height))
+    def _open(self) -> cv2.VideoWriter:
+        return cv2.VideoWriter(self.spath_video, self.fourcc, self.fps, (self.width, self.height))
 
-    def close(self):
+    def close(self) -> None:
         self.wri.release()
 
 
@@ -342,7 +344,7 @@ class SceneChangeDetectorFFmpeg(object):
     """This class is intended to detect scene change for the given video.
     The reference is as follows: https://rusty.today/posts/ffmpeg-scene-change-detector.
     The corresponding FFmpeg is as below.
-        i)  ffmpeg -i _path_video -filter:v "select='gt(scene, 0.4)', showinfo" -f null - 2> ffout.log
+        i)  ffmpeg -i _spath_video -filter:v "select='gt(scene, 0.4)', showinfo" -f null - 2> ffout.log
         ii) grep showinfo ffout.log | grep pts_time:[0-9.]* -o | grep [0-9.]* -o > ffout_scene_change_detection.log
     """
     def __init__(self, _threshold: float = 0.4):
@@ -350,11 +352,11 @@ class SceneChangeDetectorFFmpeg(object):
         self.cmd = None
         self.offset = 9
 
-    def get_frame_index(self, _path_video: str) -> list:
-        vid_src = VideoReaderCV(_path_video=_path_video)
+    def get_frame_index(self, _spath_video: str) -> list:
+        vid_src = VideoReaderCV(_spath_video=_spath_video)
         vid_src_timestamp = self._convert(_list=vid_src.get_timestamp(), _unit=1000, _decimals=4)
 
-        command = self._get_command(_path_video=_path_video)
+        command = self._get_command(_spath_video=_spath_video)
         str_stdout, str_stderr = utils_.run_command_stdout(_command=command)
 
         idx_start = utils_.find_substr(_str_src=str_stderr, _str_sub='pts_time:')
@@ -364,12 +366,12 @@ class SceneChangeDetectorFFmpeg(object):
         for idx, (_idx_start, _idx_end) in enumerate(zip(idx_start, idx_end)):
             scd_timestamp.append(float(str_stderr[_idx_start + self.offset:_idx_end]))
 
-        res = utils_.list_matching_idx(_list_1=self._convert(_list=scd_timestamp, _unit=1.0, _decimals=4), _list_2=vid_src_timestamp)
+        res = list_.list_matching_idx(_list_1=self._convert(_list=scd_timestamp, _unit=1.0, _decimals=4), _list_2=vid_src_timestamp)
 
         return res
 
-    def _get_command(self, _path_video: str) -> list:
-        return ["ffmpeg", "-i", _path_video, "-filter:v", "select='gt(scene, {})', showinfo".format(self.threshold), "-f", "null", "pipe:1"]
+    def _get_command(self, _spath_video: str) -> list:
+        return ["ffmpeg", "-i", _spath_video, "-filter:v", "select='gt(scene, {})', showinfo".format(self.threshold), "-f", "null", "pipe:1"]
 
     def _convert(self, _list, _unit=1.0, _decimals=4):
         return list(np.round(np.array(_list) / _unit, _decimals))
@@ -379,7 +381,7 @@ class SceneChangeDetectorFFmpegInteractiveProcessing(object):
     """This class is intended to detect scene change for the given video.
     The reference is as follows: https://rusty.today/posts/ffmpeg-scene-change-detector.
     The corresponding FFmpeg is as below.
-        i)  ffmpeg -i _path_video -filter:v "select='gt(scene, 0.4)', showinfo" -f null - 2> ffout.log
+        i)  ffmpeg -i _spath_video -filter:v "select='gt(scene, 0.4)', showinfo" -f null - 2> ffout.log
         ii) grep showinfo ffout.log | grep pts_time:[0-9.]* -o | grep [0-9.]* -o > ffout_scene_change_detection.log
     """
     def __init__(self, _dsize: tuple = None, _threshold: float = 0.4, _is_cython: bool = True):
@@ -406,13 +408,13 @@ class SceneChangeDetectorFFmpegInteractiveProcessing(object):
         self.ndarr_frame_curr = None
         self.ndarr_frame_ref = None
 
-    def get_frame_index(self, _path_video: str) -> list:
+    def get_frame_index(self, _spath_video: str) -> list:
         """
-        :param str _path_video: A path for the given video file
+        :param str _spath_video: A path for the given video file
         :returns: A list containing the frame index information where the scene change occurs
         """
         res = []
-        vid_src = VideoReaderCV(_path_video=_path_video)
+        vid_src = VideoReaderCV(_spath_video=_spath_video)
         for idx in range(int(vid_src.num_frames)):
             ndarr_frame = np.squeeze(vid_src.imread(_num_batch_frames=1, _trans=None, _dsize=self.dsize))
             is_scene_change = self.run(_ndarr_frame=ndarr_frame, _be_float32=True)
@@ -510,7 +512,7 @@ class SceneChangeDetectorFFmpegBatchProcessing(object):
     """This class is intended to detect scene change for the given video.
     The reference is as follows: https://rusty.today/posts/ffmpeg-scene-change-detector.
     The corresponding FFmpeg is as below.
-        i)  ffmpeg -i _path_video -filter:v "select='gt(scene, 0.4)', showinfo" -f null - 2> ffout.log
+        i)  ffmpeg -i _spath_video -filter:v "select='gt(scene, 0.4)', showinfo" -f null - 2> ffout.log
         ii) grep showinfo ffout.log | grep pts_time:[0-9.]* -o | grep [0-9.]* -o > ffout_scene_change_detection.log
     """
     def __init__(self, _dsize: tuple = None, _threshold: float = 0.4, _is_gray: bool = True, _unit_computation: int = 1800, _is_cython: bool = True):
@@ -542,13 +544,13 @@ class SceneChangeDetectorFFmpegBatchProcessing(object):
         if self.nb_sad == 0:
             raise ValueError('The self.nb_sad should be positive.')
 
-    def get_frame_index(self, _path_video: str) -> list:
+    def get_frame_index(self, _spath_video: str) -> list:
         """
-        :param str _path_video: A path for the given video file
+        :param str _spath_video: A path for the given video file
         :returns: A list containing the frame index information where the scene change occurs
         """
         res = []
-        vid_src = VideoReaderCV(_path_video=_path_video)
+        vid_src = VideoReaderCV(_spath_video=_spath_video)
         while (vid_src.is_eof is False):
             offset = (vid_src.idx_frame_curr - 1)
             if offset < 0:
