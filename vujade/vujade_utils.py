@@ -17,6 +17,7 @@ import random
 import os
 import glob
 import subprocess
+import shlex
 import shutil
 import psutil
 import multiprocessing
@@ -34,7 +35,7 @@ import math
 import torch
 import numpy as np
 import pprint as pprint_
-from typing import Optional
+from typing import Optional, Union
 from itertools import product, compress
 from vujade import vujade_debug as debug_
 
@@ -109,33 +110,38 @@ class SystemCommand(object):
     """
     Usage:
         print('[MAIN] Start: {}'.format(utils_.getpid()))
-
         cmd_1 = 'bash ./bash_test.sh'
         cmd_2 = 'python3 ./test.py'
-
         cmd = cmd_1 # or cmd_2
-
-        utils_.SystemCommand.run(_command=cmd)
-        utils_.SystemCommand.run_timeout(_limit_sec=5, _command=cmd, _is_daemon=False)
-
+        utils_.SystemCommand.run(_command=cmd, _is_daemon=False, _is_subprocess=True)
+        utils_.SystemCommand.run_timeout(_timeout_sec=5, _command=cmd, _is_daemon=False, _is_subprocess=True)
         print('[MAIN] End: {}')
     """
     def __init__(self):
         super(SystemCommand, self).__init__()
 
     @classmethod
-    def run(cls, _command: str, _is_daemon: bool = False, _res: Optional[dict] = None) -> bool:
+    def run(cls, _command: str, _is_daemon: bool = False, _res: Optional[dict] = None, _is_subprocess: bool = True) -> bool:
         if _is_daemon is True:
             command = '{} &'.format(_command)
         else:
             command = '{}'.format(_command)
 
-        res_command = os.system(command)
-
-        if res_command == 0:
-            is_success = True
+        if _is_subprocess is True:
+            try:
+                p = subprocess.run(shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                if p.returncode != 0:
+                    is_success = False
+                else:
+                    is_success = not b'Traceback' in p.stderr
+            except Exception as e:
+                is_success = False
         else:
-            is_success = False
+            res_command = os.system(command)
+            if res_command == 0:
+                is_success = True
+            else:
+                is_success = False
 
         if _res is not None:
             _res['is_success'] = is_success
@@ -143,42 +149,90 @@ class SystemCommand(object):
         return is_success
 
     @classmethod
-    def run_timeout(cls, _limit_sec: int, _command: str, _is_daemon: bool = False) -> bool:
-        limit_sec = int(math.floor(_limit_sec))
+    def run_timeout(cls, _timeout_sec: int, _command: str, _is_daemon: bool = False, _is_subprocess: bool = True, _remove_single_quotation_mark: bool = True) -> Union[bool, str]:
+        timeout_sec = int(math.floor(_timeout_sec))
 
         # Process spawning
         manager = multiprocessing.Manager()
         p_res = manager.dict()
 
-        p = multiprocessing.Process(name=_command, target=cls.run, args=(_command, _is_daemon, p_res))
+        p = multiprocessing.Process(name=_command, target=cls.run, args=(_command, _is_daemon, p_res, _is_subprocess))
+
         p.start()
-        p.join(timeout=limit_sec)
+        p.join(timeout=timeout_sec)
 
         if p.is_alive():
             # Time-out
             # Get process information
-            proc_info = get_pid_ppid(_command=_command)
-            proc_parent = psutil.Process(proc_info['ppid'])
-            list_proc = [proc_parent]
-            for proc_child in proc_parent.children(recursive=True):
-                list_proc.append(proc_child)
+            proc_info = get_ps(_command=_command, _remove_single_quotation_mark=_remove_single_quotation_mark)
+            if proc_info is not None:
+                proc_parent = psutil.Process(int(proc_info['ppid']))
+                list_proc = [proc_parent]
+                for proc_child in proc_parent.children(recursive=True):
+                    list_proc.append(proc_child)
 
-            # Terminate process recursively
-            for proc in list_proc[::-1]:  # reverse
-                proc.terminate()
-            res = False
+                # Terminate process recursively
+                for proc in list_proc[::-1]:  # reverse
+                    proc.terminate()
+                res = 'time_out'
+            else:
+                raise ValueError('The proc_info should not be None.')
         else:
-            # Time-in or cls.run() does not work. (i.e. error)
+            # Time-in or cls.run() does not work. (i.e. runtime error)
             if p_res['is_success'] is True:
                 # Time-in
                 res = True
             else:
-                # cls.run() does not work. (i.e. error)
-                res = None
+                # cls.run() does not work. (i.e. runtime error)
+                res = 'runtime_error'
 
         p.terminate()
 
+        if not res in {True, 'time_out', 'runtime_error'}:
+            raise ValueError('The return value, {} may be incorrect.'.format(res))
+
         return res
+
+
+def grep_ps(_command: str, _remove_single_quotation_mark: bool = True) -> list:
+    if _remove_single_quotation_mark is True:
+        _command = _command.replace("'", "")
+
+    command = "ps -ef | grep '{}'".format(_command)
+    res_command = subprocess.check_output(command, shell=True)
+    splitted_command = res_command.split(b'\n')
+
+    res = list()
+    for _idx, _command in enumerate(splitted_command):
+        ps_dict = dict()
+        ps_line = _command.decode('utf-8')
+        ps_list = shlex.split(ps_line)
+        if len(ps_list) != 0:
+            ps_dict['uid'] = ps_list[0]
+            ps_dict['pid'] = ps_list[1]
+            ps_dict['ppid'] = ps_list[2]
+            ps_dict['c'] = ps_list[3]
+            ps_dict['stime'] = ps_list[4]
+            ps_dict['tty'] = ps_list[5]
+            ps_dict['time'] = ps_list[6]
+            ps_dict['cmd'] = ' '.join(map(str, ps_list[7:]))
+            res.append(ps_dict)
+
+    return res
+
+
+def get_ps(_command: str, _remove_single_quotation_mark: bool = True) -> Optional[dict]:
+    if _remove_single_quotation_mark is True:
+        _command = _command.replace("'", "")
+
+    ps_list = grep_ps(_command=_command, _remove_single_quotation_mark=False)
+
+    res = None
+    for _idx, _ps in enumerate(ps_list):
+        if _command == _ps['cmd']:
+            res = _ps
+
+    return res
 
 
 def rmtree(_path_dir: str, _ignore_errors: bool = False, _onerror=None) -> int:
@@ -276,47 +330,6 @@ def get_command_cli(_prefix='python3 '):
 
 def bit2bool(_num, _n_bit):
     return ((_num >> _n_bit) & 1 == True)
-
-
-def get_idx_substr(_str: str, _str_sub: str, _n: int = 1, _is_reverse=False) -> int:
-    if _is_reverse is False:
-        res = _str.find(_str_sub)
-    else:
-        res = _str.rfind(_str_sub)
-
-    while res >= 0 and _n > 1:
-        if _is_reverse is False:
-            res = _str.find(_str_sub, res + len(_str_sub), -1)
-            _n -= 1
-        else:
-            res = _str.rfind(_str_sub, 0, res - len(_str_sub))
-            _n -= 1
-
-    return res
-
-
-def get_pid_ppid(_command: str) -> dict:
-    command = "ps -ef | grep '{}'".format(_command)
-    res_command = subprocess.check_output(command, shell=True).decode('utf-8')
-
-    pid = None
-    ppid = None
-    for line_command in res_command.split('\n'):
-        idx_find_command = get_idx_substr(_str=line_command, _str_sub=_command, _n=1)
-        idx_find_grep = get_idx_substr(_str=line_command, _str_sub='grep', _n=1)
-        if (idx_find_grep == -1) and (idx_find_command != -1):
-            idx_find_1 = get_idx_substr(_str=line_command, _str_sub=' ', _n=1)
-            idx_find_2 = get_idx_substr(_str=line_command, _str_sub=' ', _n=2)
-            idx_find_3 = get_idx_substr(_str=line_command, _str_sub=' ', _n=3)
-            pid = line_command[idx_find_1+1:idx_find_2]
-            ppid = line_command[idx_find_2+1:idx_find_3]
-
-    res = {'command': _command,
-           'pid': int(pid),
-           'ppid': int(ppid)
-           }
-
-    return res
 
 
 def getpid() -> int:

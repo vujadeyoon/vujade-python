@@ -71,6 +71,13 @@ def str2list(_str: str) -> list:
         raise argparse.ArgumentTypeError('The argument should be string.')
 
 
+def list2str(_list_str: list) -> str:
+    if isinstance(_list_str, list):
+        return ' '.join(map(str, _list_str))
+    else:
+        raise argparse.ArgumentTypeError('The argument should be string.')
+
+
 def strtuple2tuple(_str: str) -> tuple:
     return tuple(json.loads(_str))
 

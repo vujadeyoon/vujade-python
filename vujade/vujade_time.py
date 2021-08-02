@@ -20,16 +20,18 @@ def get_datetime(_timezone=timezone('Asia/Seoul')) -> dict:
     hour = '{:02d}'.format(datetime_object.hour)
     minute = '{:02d}'.format(datetime_object.minute)
     second = '{:02d}'.format(datetime_object.second)
+    microsecond = '{:06d}'.format(datetime_object.microsecond)
 
     dict_datetime_curr = {'year': year,
                           'month': month,
                           'day': day,
                           'hour': hour,
                           'minute': minute,
-                          'second': second
+                          'second': second,
+                          'microsecond': microsecond
                           }
-    datetime_curr_default = year + month + day + hour + minute + second
-    datetime_curr_readable = '{}-{}-{} {}:{}:{}'.format(year, month, day, hour, minute, second)
+    datetime_curr_default = '{}.{}'.format(year + month + day + hour + minute + second, microsecond)
+    datetime_curr_readable = '{}-{}-{} {}:{}:{}.{}'.format(year, month, day, hour, minute, second, microsecond)
 
     res = {'dict': dict_datetime_curr,
            'default': datetime_curr_default,
