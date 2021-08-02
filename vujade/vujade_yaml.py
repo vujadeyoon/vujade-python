@@ -12,16 +12,16 @@ import yaml
 
 
 class YAML(object):
-    def __init__(self, _spath_filename):
+    def __init__(self, _spath_filename: str) -> None:
         super(YAML, self).__init__()
         self.spath_filename = _spath_filename
 
-    def read(self):
+    def read(self) -> None:
         with open(self.spath_filename) as f:
             data = yaml.load(f, Loader=yaml.FullLoader)
 
         return data
 
-    def write(self, _dict_data):
+    def write(self, _data: dict) -> None:
         with open(self.spath_filename, 'w') as f:
-            yaml.dump(_dict_data, f)
+            yaml.dump(_data, f)

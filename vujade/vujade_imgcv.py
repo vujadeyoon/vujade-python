@@ -1,7 +1,4 @@
-"""# cnt = 0
-        # while True:
-        #     print('[{}]: {}'.format(cnt, self.pid))
-        #     cnt += 1
+"""
 Dveloper: vujadeyoon
 E-mail: sjyoon1671@gmail.com
 Github: https://github.com/vujadeyoon/vujade

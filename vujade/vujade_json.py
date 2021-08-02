@@ -12,7 +12,7 @@ import json
 
 
 class JSON(object):
-    def __init__(self, _spath_filename: str, _mode: str):
+    def __init__(self, _spath_filename: str, _mode: str) -> None:
         super(JSON, self).__init__()
         self.spath_filename = _spath_filename
         self.mode = _mode
@@ -23,9 +23,9 @@ class JSON(object):
 
         return data
 
-    def write(self, _dict_data: dict, _indent: int = 4, _ensure_ascii: bool = True) -> None:
+    def write(self, _data: dict, _indent: int = 4, _ensure_ascii: bool = True) -> None:
         with open(self.spath_filename, self.mode) as f:
-            json.dump(_dict_data, f, indent=_indent, ensure_ascii=_ensure_ascii)
+            json.dump(_data, f, indent=_indent, ensure_ascii=_ensure_ascii)
 
-    def pprint(self) -> None:
-        print(json.dumps(self.read(), indent=2, sort_keys=True))
+    def pretty_read(self, _ensure_ascii: bool = True) -> str:
+        return json.dumps(self.read(), indent=2, sort_keys=True, ensure_ascii=_ensure_ascii)
