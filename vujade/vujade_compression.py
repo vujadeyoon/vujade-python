@@ -10,7 +10,6 @@ Description: A module for compression
 
 import os
 import abc
-import shutil
 import zipfile
 from typing import List, Optional
 from vujade import vujade_path as path_
@@ -28,9 +27,13 @@ class Compression(metaclass=abc.ABCMeta):
 
 
 class Zip(object):
-    def __init__(self) -> None:
+    def __init__(self, _pwd: Optional[bytes] = None) -> None:
         super(Zip, self).__init__()
-        self.path_cwd = path_.Path(_spath=os.getcwd())
+        if (_pwd is None) or (isinstance(_pwd, bytes) is True):
+            self.path_cwd = path_.Path(_spath=os.getcwd())
+            self.pwd = _pwd
+        else:
+            raise ValueError('The type of _pwd, {} may be incorrect.'.format(type(_pwd)))
 
     def compress(self, _spath_zip: str, _targets: List[str], _spath_base: Optional[str] = None, _level: int = zipfile.ZIP_DEFLATED) -> None:
         if _spath_base is None:
@@ -88,6 +91,8 @@ class Zip(object):
 
             if type_target is True:
                 with zipfile.ZipFile(path_zip.str, 'w', _level) as f:
+                    if self.pwd is not None:
+                        f.setpassword(pwd=self.pwd)
                     for _idx, _target in enumerate(_targets):
                         path_target = path_.Path(_spath=os.path.join(path_base.str, _target))
                         f.write(_target)
@@ -109,6 +114,8 @@ class Zip(object):
 
             if type_target is True:
                 with zipfile.ZipFile(path_zip.str, 'w', _level) as f:
+                    if self.pwd is not None:
+                        f.setpassword(pwd=self.pwd)
                     for _idx, _target in enumerate(_targets):
                         path_target = path_.Path(_spath=os.path.join(_target))
                         f.write(_target)
@@ -121,5 +128,7 @@ class Zip(object):
 
     def _decompress(self, _path_zip: str) -> None:
         zip_file = zipfile.ZipFile(_path_zip)
+        if self.pwd is not None:
+            zip_file.setpassword(pwd=self.pwd)
         zip_file.extractall()
         zip_file.close()
