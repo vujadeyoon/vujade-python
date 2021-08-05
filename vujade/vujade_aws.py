@@ -108,7 +108,7 @@ class BaseAWS(object):
 
 
 class S3(BaseAWS):
-    def __init__(self, _spath_aws: str, _mode: str, _access_key: Optional[str] = None, _secret_key: Optional[str] = None):
+    def __init__(self, _mode: str, _access_key: Optional[str] = None, _secret_key: Optional[str] = None, _spath_aws: str = os.path.join(str(Path.home()), '.aws')):
         super(S3, self).__init__(_spath_aws=_spath_aws, _access_key=_access_key, _secret_key=_secret_key)
         self.mode = _mode
 
@@ -223,7 +223,9 @@ if __name__=='__main__':
     parser.add_argument('--mode', '-M', type=str, default='upload', help='Option: awscli; enroll; upload; download; delete.')
     parser.add_argument('--path_remote', '-R', type=str, default='userid/path/object', help='Remote full path (i.e. AWS S3): userid/path/object')
     parser.add_argument('--path_local', '-L', type=str, default='/path/object', help='Local full path: /path/object')
-    parser.add_argument('--name_bucket', type=str, default='Secret', help='Bucket name')
+    parser.add_argument('--name_bucket', type=str, default='required', help='Bucket name')
+    parser.add_argument('--access_key', type=str, default='required', help='Credentials output')
+    parser.add_argument('--secret_key', type=str, default='required', help='Credentials output')
     parser.add_argument('--path_aws', type=str, default=os.path.join(str(Path.home()), '.aws'), help='Path for the AWS.')
     parser.add_argument('--region', type=str, default='ap-northeast-2', help='Credentials region')
     parser.add_argument('--output', type=str, default='json', help='Credentials output')
@@ -232,7 +234,7 @@ if __name__=='__main__':
 
     if args.mode in get_aws_mode_s3():
         printf('args.mode: {}.'.format(args.mode), _is_pause=False)
-        aws_s3 = S3(_spath_aws=args.path_aws, _mode=args.mode, _access_key=None, _secret_key=None)
+        aws_s3 = S3(_mode=args.mode, _access_key=args.access_key, _secret_key=args.secret_key, _spath_aws=args.path_aws)
     else:
         raise NotImplementedError('The AWS S3 mode: {} is not supported yet.'.format(args.mode))
 

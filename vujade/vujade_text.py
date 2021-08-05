@@ -20,6 +20,11 @@ class TEXT(object):
 
         return lines
 
+    def write_lines(self, _list_str: list) -> None:
+        with open(self.spath_filename, mode=self.mode) as f:
+            for _idx, _str in enumerate(_list_str):
+                f.write(_str)
+
     def write(self, _str: str) -> None:
         with open(self.spath_filename, mode=self.mode) as f:
             f.write(_str)

@@ -75,7 +75,7 @@ def pprintf(*_args, **_kwargs) -> str:
         if _arg in called_keys:
             info_str += '{}: {}, '.format(_arg, called[_arg])
         else:
-            utils_.print_color(_str='The local variable, {} is not defined.'.format(_arg), _bcolor='WARNING')
+            utils_.print_color(_str='The local variable, {} is not defined.'.format(_arg), _color='WARNING')
     info_str = info_str.rstrip(', ')
 
     info_trace = printf(info_str, **_kwargs)

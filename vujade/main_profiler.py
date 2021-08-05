@@ -60,6 +60,6 @@ if __name__ == '__main__':
         if (mem_main_fatal <= mem_main_curr) or (mem_gpu_fatal <= mem_gpu_curr):
             bcolor='FATAL'
 
-        utils_.print_color(_str=info, _bcolor=bcolor)
+        utils_.print_color(_str=info, _color=bcolor)
 
         time.sleep(unit)

@@ -9,6 +9,7 @@ Description: A module for string
 
 
 import argparse
+import ast
 import json
 from typing import Union, Optional
 
@@ -45,6 +46,10 @@ def str2dict_v3(_str: str) -> dict:
     return json.loads(_str)
 
 
+def str2dict_v4(_str: str) -> dict:
+    return ast.literal_eval(_str)
+
+
 def str2bool(_v: Union[str, bool]) -> bool:
     # This function is equivalent to the built-in function, bool(strtobool()), in the distutils.util.
     if isinstance(_v, bool):
@@ -64,11 +69,15 @@ def str2tuple(_str: str) -> tuple:
         raise argparse.ArgumentTypeError('The argument should be string.')
 
 
-def str2list(_str: str) -> list:
+def str2list_v1(_str: str) -> list:
     if isinstance(_str, str):
         return _str.replace(' ', '').replace('[', '').replace(']', '').split(',')
     else:
         raise argparse.ArgumentTypeError('The argument should be string.')
+
+
+def str2list_v2(_str: str) -> list:
+    return ast.literal_eval(_str)
 
 
 def list2str(_list_str: list) -> str:

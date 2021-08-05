@@ -79,7 +79,7 @@ def deprecated(_func):
         info_str = 'The deprecated function, {} is called.'.format(_func.__name__)
         info_trace = '[{}: {}]: '.format(debug_info.fileName, debug_info.lineNumber) + info_str
 
-        print_color(_str=info_trace, _bcolor='WARNING')
+        print_color(_str=info_trace, _color='WARNING')
         warnings.simplefilter('always', DeprecationWarning)
         warnings.warn(info_str,
                       category=DeprecationWarning,
@@ -94,12 +94,12 @@ def find_substr(_str_src: str, _str_sub: str) -> list:
     return [m.start() for m in re.finditer(_str_sub, _str_src)]
 
 
-def run_command_stdout(_command: list) -> (str, str):
-    pipe = subprocess.run(_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    str_stdout = pipe.stdout.decode('utf-8')
-    str_stderr = pipe.stderr.decode('utf-8')
+def get_stdout_stderr(_command: str) -> tuple:
+    pipe = subprocess.run(shlex.split(_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = pipe.stdout
+    stderr = pipe.stderr
 
-    return str_stdout, str_stderr
+    return stdout, stderr
 
 
 def system_stdout(_str: str) -> None:
@@ -357,20 +357,44 @@ def print_info(_var, _print_var=False):
         print('type: {}'.format(type(_var)))
 
 
-def print_color(_str: str, _bcolor: str = 'WARNING') -> None:
-    bcolors = {'HEADER':'\033[95m',
-               'OKBLUE':'\033[94m',
-               'OKGREEN':'\033[92m',
-               'WARNING':'\033[93m',
-               'FATAL':'\033[91m',
-               'ENDC':'\033[0m',
-               'BOLD':'\033[1m',
-               'UNDERLINE':'\033[4m'}
-    print(bcolors[_bcolor] + _str + bcolors['ENDC'])
+def print_color(_str: str, _color: str = 'WARNING') -> None:
+    colors = {'PUPPLE':'\033[95m',
+              'BLUE':'\033[94m',
+              'GREEN':'\033[92m',
+              'WARNING':'\033[93m',
+              'FATAL':'\033[91m',
+              'ENDC':'\033[0m',
+              'BOLD':'\033[1m',
+              'UNDERLINE':'\033[4m'}
+    print(colors[_color] + _str + colors['ENDC'])
+
+
+def printf_color(_str: str, _color: str = 'WARNING', _is_pause: bool = True) -> None:
+    if _is_pause is False:
+        _print = print
+    else:
+        _print = input
+
+    debug_info = DEBUG()
+    debug_info.get_file_line()
+    info_trace = '[{}: {}]: '.format(debug_info.fileName, debug_info.lineNumber) + _str
+
+    colors = {'PUPPLE':'\033[95m',
+              'BLUE':'\033[94m',
+              'GREEN':'\033[92m',
+              'WARNING':'\033[93m',
+              'FATAL':'\033[91m',
+              'ENDC':'\033[0m',
+              'BOLD':'\033[1m',
+              'UNDERLINE':'\033[4m'}
+    _print(colors[_color] + info_trace + colors['ENDC'])
 
 
 def pause(_str: str = '<Press enter/return to continue>') -> None:
-    debug_.printf(_str)
+    debug_info = DEBUG()
+    debug_info.get_file_line()
+    info_trace = '[{}: {}]: '.format(debug_info.fileName, debug_info.lineNumber) + _str
+    input(info_trace)
 
 
 def endl() -> None:

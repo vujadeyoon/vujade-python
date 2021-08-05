@@ -37,3 +37,15 @@ class XLSX(object):
 def csv2xlsx(_spath_src: str, _spath_dst: str, _header: bool = True, _index: bool = True) -> None:
     df = pd.read_csv(_spath_src)
     df.to_excel(_spath_dst, header=_header, index=_index)
+
+
+def worksheet2df(_ws: openpyxl.Workbook.worksheets, _is_header: bool = True) -> pd.DataFrame:
+    ws_values = _ws.values
+
+    if _is_header is True:
+        header = next(ws_values)[0:]
+        res = pd.DataFrame(ws_values, columns=header)
+    else:
+        res = pd.DataFrame(ws_values)
+
+    return res

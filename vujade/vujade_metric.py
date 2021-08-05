@@ -175,7 +175,7 @@ def ssim_matlab(_ndarr_input, _ndarr_ref, _multichannel=False, _win_size=11, _K1
         _multichannel=False
 
     if _multichannel is True:
-        utils_.print_color(_str='[WARNING]: It is recommend to use ssim_skimage instead of ssim_matlab for the multichannel option because of computational time.', _bcolor='WARNING')
+        utils_.print_color(_str='[WARNING]: It is recommend to use ssim_skimage instead of ssim_matlab for the multichannel option because of computational time.', _color='WARNING')
         cumsum_ssim = 0.0
         for idx_channel in range(_ndarr_input.shape[2]):
             cumsum_ssim += _ssim_matlab(_ndarr_input=_ndarr_input[:, :, idx_channel], _ndarr_ref=_ndarr_ref[:, :, idx_channel], _win_size=_win_size, _K1=_K1, _K2=_K2, _sigma=_sigma, _R=_R)

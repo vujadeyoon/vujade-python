@@ -349,7 +349,6 @@ class SceneChangeDetectorFFmpeg(object):
     """
     def __init__(self, _threshold: float = 0.4):
         self.threshold = _threshold
-        self.cmd = None
         self.offset = 9
 
     def get_frame_index(self, _spath_video: str) -> list:
@@ -357,10 +356,10 @@ class SceneChangeDetectorFFmpeg(object):
         vid_src_timestamp = self._convert(_list=vid_src.get_timestamp(), _unit=1000, _decimals=4)
 
         command = self._get_command(_spath_video=_spath_video)
-        str_stdout, str_stderr = utils_.run_command_stdout(_command=command)
+        str_stdout, str_stderr = utils_.get_stdout_stderr(_command=command)
 
-        idx_start = utils_.find_substr(_str_src=str_stderr, _str_sub='pts_time:')
-        idx_end = utils_.find_substr(_str_src=str_stderr, _str_sub=' pos:')
+        idx_start = utils_.find_substr(_str_src=str_stderr.decode('utf-8'), _str_sub='pts_time:')
+        idx_end = utils_.find_substr(_str_src=str_stderr.decode('utf-8'), _str_sub=' pos:')
 
         scd_timestamp = []
         for idx, (_idx_start, _idx_end) in enumerate(zip(idx_start, idx_end)):
@@ -370,8 +369,8 @@ class SceneChangeDetectorFFmpeg(object):
 
         return res
 
-    def _get_command(self, _spath_video: str) -> list:
-        return ["ffmpeg", "-i", _spath_video, "-filter:v", "select='gt(scene, {})', showinfo".format(self.threshold), "-f", "null", "pipe:1"]
+    def _get_command(self, _spath_video: str) -> str:
+        return 'ffmpeg -i {} -filter:v \"select=\'gt(scene, {})\', showinfo\" -f null pipe:1'.format(_spath_video, self.threshold)
 
     def _convert(self, _list, _unit=1.0, _decimals=4):
         return list(np.round(np.array(_list) / _unit, _decimals))
