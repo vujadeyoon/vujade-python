@@ -143,6 +143,7 @@ class VideoReaderCV(object):
         self.num_frames_ori = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.length_ori = int(self.num_frames_ori / self.fps)
         self.orientation = self._get_orientation()
+        self.frame_types = self._get_frame_types()
 
         if (_sec_end is not None) and (self.length_ori <= _sec_end):
             _sec_end = None
@@ -225,10 +226,9 @@ class VideoReaderCV(object):
 
         Returns a rotation None, 90, 180 or 270
         """
-        cmd = "ffprobe -loglevel error -select_streams v:0 -show_entries stream_tags=rotate -of default=nw=1:nk=1"
-        args = shlex.split(cmd)
-        args.append(self.spath_video)
-        ffprobe_output = subprocess.check_output(args).decode('utf-8')
+        command = "ffprobe -loglevel error -select_streams v:0 -show_entries stream_tags=rotate -of default=nw=1:nk=1 '{}'".format(self.spath_video)
+        ffprobe_output = utils_.SystemCommand.check_output(_command=command, _split=True, _shell=False, _decode=True)
+
         if len(ffprobe_output) > 0:  # Output of cmdis None if it should be 0
             ffprobe_output = json.loads(ffprobe_output)
             rotation = ffprobe_output
@@ -241,6 +241,18 @@ class VideoReaderCV(object):
             orientation = 'vertical'
 
         return orientation
+
+    def _get_frame_types(self) -> dict:
+        command = 'ffprobe -v error -show_entries frame=pict_type -of default=noprint_wrappers=1 {}'.format(self.spath_video)
+        frame_types = utils_.SystemCommand.check_output(_command=command, _split=True, _shell=False, _decode=True).replace('pict_type=', '').split()
+
+        res = {
+            'I': list_.find_indices(_list=frame_types, _mached_element='I'),
+            'P': list_.find_indices(_list=frame_types, _mached_element='P'),
+            'B': list_.find_indices(_list=frame_types, _mached_element='B')
+        }
+
+        return res
 
     def _get_idx_frame(self) -> int:
         return int(self.cap.get(cv2.CAP_PROP_POS_FRAMES))

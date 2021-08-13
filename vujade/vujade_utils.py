@@ -193,13 +193,27 @@ class SystemCommand(object):
 
         return res
 
+    @classmethod
+    def check_output(cls, _command: str, _split: bool = False, _shell: bool = False, _decode: bool = True) -> Union[str, bytes]:
+        if _split is True:
+            command = shlex.split(_command)
+        else:
+            command = _command
+
+        res = subprocess.check_output(command, shell=_shell)
+
+        if _decode is True:
+            res = res.decode('utf-8')
+
+        return res
+
 
 def grep_ps(_command: str, _remove_single_quotation_mark: bool = True) -> list:
     if _remove_single_quotation_mark is True:
         _command = _command.replace("'", "")
 
     command = "ps -ef | grep '{}'".format(_command)
-    res_command = subprocess.check_output(command, shell=True)
+    res_command = SystemCommand.check_output(_command=command, _split=False, _shell=True, _decode=False)
     splitted_command = res_command.split(b'\n')
 
     res = list()

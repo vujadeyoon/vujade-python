@@ -10,6 +10,7 @@ Description: A module for list
 
 import itertools
 import math
+from typing import Any
 
 
 def flatten_list(_list: list) -> list:
@@ -41,3 +42,11 @@ def list_matching_idx(_list_1: list, _list_2: list) -> list:
 def floor(_list: list, _point: int = 0) -> list:
     offset = 10 ** _point
     return list(map(lambda x: math.floor(offset * x) / offset, _list))
+
+
+def find(_list: list, _mached_element: Any) -> list:
+    return [x for x in _list if x == _mached_element]
+
+
+def find_indices(_list: list, _mached_element: Any) -> list:
+    return [idx for idx, x in enumerate(_list) if x == _mached_element]
