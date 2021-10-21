@@ -1,6 +1,6 @@
 """
 Dveloper: vujadeyoon
-E-mail: sjyoon1671@gmail.com
+Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
 Title: vujade_path.py
@@ -69,6 +69,9 @@ class Path(object):
 
     def cd(self) -> None:
         os.chdir(self.str)
+
+    def count_number_files(self, _pattern: str = '*') -> int:
+        return len(list(self.path.rglob('*')))
 
 
 def export_pythonpath(self, _spath: str) -> None:

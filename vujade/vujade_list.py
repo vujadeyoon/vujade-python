@@ -1,6 +1,6 @@
 """
 Dveloper: vujadeyoon
-E-mail: sjyoon1671@gmail.com
+Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
 Title: vujade_list.py
@@ -11,6 +11,10 @@ Description: A module for list
 import itertools
 import math
 from typing import Any
+
+
+def is_have_negative_element(_list: list) -> bool:
+    return (0 < sum(1 for _e in _list if _e < 0))
 
 
 def flatten_list(_list: list) -> list:

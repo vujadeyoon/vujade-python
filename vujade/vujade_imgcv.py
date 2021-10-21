@@ -1,6 +1,6 @@
 """
 Dveloper: vujadeyoon
-E-mail: sjyoon1671@gmail.com
+Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
 Title: vujade_imgcv.py
@@ -11,12 +11,13 @@ Description: A module for image processing and computer vision
 
 import os
 import numpy as np
-from PIL import Image
 import cv2
 import cv2.ximgproc as ximgproc
 import pywt
-from vujade import vujade_multiprocess as multiprocess_
+import matplotlib.pyplot as plt
+from PIL import Image
 from typing import Set
+from vujade import vujade_multiprocess as multiprocess_
 
 
 def get_img_extension() -> Set[str]:
@@ -112,6 +113,23 @@ def imresize(_ndarr, _dsize, _fx=None, _fy=None, _interpolation=cv2.INTER_LINEAR
 
 def imshow(_winname='Test image', _ndarr=None):
     cv2.imshow(winname=_winname, mat=_ndarr.astype(np.uint8))
+
+
+def plot(ndarr_img: np.ndarray, _offset: int = 12, _is_axis: bool = False, _is_bgr2rgb: bool = True) -> None:
+    img_channel, img_height, img_width = ndarr_img.shape
+    plt.figure(figsize=(_offset, img_height / img_width * _offset))
+
+    if _is_axis is False:
+        plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+        plt.axis('off')
+
+    if _is_bgr2rgb is True:
+        res = cv2.cvtColor(src=ndarr_img, code=cv2.COLOR_BGR2RGB)
+    else:
+        res = ndarr_img
+
+    plt.imshow(res) # Order of the channel: RGB
+    plt.show()
 
 
 def clip(_ndarr, _min=None, _max=None, isround=True, _round_decimals=0):

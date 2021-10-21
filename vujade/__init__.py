@@ -1,6 +1,6 @@
 """
 Dveloper: vujadeyoon
-E-mail: sjyoon1671@gmail.com
+Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
 Title: __init__.py
@@ -8,8 +8,8 @@ Description: A method-wrapper for the package, vujade.
 """
 
 
-__date__ = '210813'
-__version__ = '0.4.7'
+__date__ = '211022'
+__version__ = '0.4.8'
 __all__ = ['main_profiler',
            'vujade_argparse',
            'vujade_aws',
