@@ -7,6 +7,7 @@
 #
 # Title: bash_goofys.sh
 # Description: A bash script file to install the goofys.
+#
 # Usage:
 #     i)   Fill in the both <SECRET> in the file, ~./aws/credentials.
 #          [default]
