@@ -11,10 +11,11 @@ Description: A module for the Amazon Web Services (AWS)
 import os
 import sys
 import argparse
+import json
 import boto3
-import botocore.client
 from typing import Set, Optional
 from pathlib import Path
+from botocore.exceptions import ClientError
 try:
     from vujade import vujade_utils as utils_
     from vujade import vujade_path as path_
@@ -55,11 +56,19 @@ class BaseAWS(object):
         else:
             self.access_key, self.secret_key = _access_key, _secret_key
 
-    def _get_client(self, _name_client: str) -> botocore.client:
+    def _get_resource(self, _name: str):
         try:
-            client = boto3.client(_name_client, aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key)
+            resource = boto3.resource(_name, aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key)
         except Exception as e:
-            raise ConnectionError('It is failed to get a {} client with the exception: {}.'.format(_name_client, e))
+            raise ConnectionError('It is failed to get a {} resource with the exception: {}.'.format(_name, e))
+
+        return resource
+
+    def _get_client(self, _name: str):
+        try:
+            client = boto3.client(_name, aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key)
+        except Exception as e:
+            raise ConnectionError('It is failed to get a {} client with the exception: {}.'.format(_name, e))
 
         return client
 
@@ -118,7 +127,7 @@ class S3(BaseAWS):
         if _mode in get_aws_mode_base():
             self.client = None
         else:
-            self.client = self._get_client(_name_client='s3')
+            self.client = self._get_client(_name='s3')
 
     def get_object(self, _name_bucket: str, _spath_remote: str) -> bool:
         self._check_spath_remote(_spath_remote=_spath_remote)
@@ -188,7 +197,7 @@ class StepFunctions(BaseAWS):
         if _mode in get_aws_mode_base():
             self.client = None
         else:
-            self.client = self._get_client(_name_client='stepfunctions')
+            self.client = self._get_client(_name='stepfunctions')
 
     def list_state_machines(self, _maxResults: int = 5) -> list:
         response = self.client.list_state_machines(maxResults=_maxResults)
@@ -216,6 +225,94 @@ class StepFunctions(BaseAWS):
         )
 
         return response['events']
+
+
+class SQS(BaseAWS):
+    def __init__(self, _access_key: Optional[str] = None, _secret_key: Optional[str] = None, _spath_aws: str = os.path.join(str(Path.home()), '.aws')) -> None:
+        super(SQS, self).__init__(_spath_aws=_spath_aws, _access_key=_access_key, _secret_key=_secret_key)
+        self.resource = self._get_resource(_name='sqs')
+        self.client = self._get_client(_name='sqs')
+
+    def create_queue(self, _name: str, _attributes: Optional[dict] = None, _is_silent: bool = True):
+        if _attributes is None:
+            _attributes = {}
+
+        try:
+            queue = self.resource.create_queue(QueueName=_name, Attributes=_attributes)
+            if _is_silent is False:
+                print('A queue, {} is created with the url, {}.'.format(_name, queue.url))
+        except ClientError as error:
+            if _is_silent is False:
+                print('A queue, {} cannot be created.'.format(_name))
+            raise error
+
+        return queue
+
+    def get_queue(self, _name: str, _is_silent: bool = True):
+        try:
+            queue = self.resource.get_queue_by_name(QueueName=_name)
+            if _is_silent is False:
+                print('A queue, {} is gotten with the url, {}.'.format(_name, queue.url))
+        except ClientError as error:
+            if _is_silent is False:
+                print('A queue, {} cannot be gotten.'.format(_name))
+            raise error
+
+        return queue
+
+    def remove_queue(self, _name: str, _is_silent: bool = True) -> None:
+        queue = self.get_queue(_name=_name)
+
+        try:
+            queue.delete()
+            if _is_silent is False:
+                print('A queue is deleted with the url, {}.'.format(queue.url))
+        except ClientError as error:
+            if _is_silent is False:
+                print('A queue cannot be deleted with the url, {}.'.format(queue.url))
+            raise error
+
+    def msg_send(self, _name: str, _msg_body: json, **_kwargs) -> dict:
+        # Usage:
+        #   i)  Standard: res = sqs.msg_send(_name='name.fifo', _msg_body=json.dumps({'message': "test"}))
+        #   ii) FIFO: res = sqs.msg_send(_name='name', _msg_body=json.dumps({'message': "test"}), MessageGroupId='msg_group_id')
+
+        queue = self.get_queue(_name=_name)
+        try:
+            res = self.client.send_message(QueueUrl=queue.url, MessageBody=_msg_body, **_kwargs)
+        except ClientError as e:
+            print('It is failed to send a message.')
+            res = None
+
+        return res
+
+    def msg_receive(self, _name: str, _is_msg_delete: bool = True) -> dict:
+        # Usage: sqs.msg_receive(_name='name', _is_msg_delete=True)
+
+        queue = self.get_queue(_name=_name)
+        try:
+            res = self.client.receive_message(QueueUrl=queue.url)
+            if _is_msg_delete is True:
+                self.client.delete_message(QueueUrl=queue.url, ReceiptHandle=res['Messages'][0]['ReceiptHandle'])
+        except ClientError as e:
+            print('It is failed to receive a message.')
+            res = None
+
+        return res
+
+    def get_attributes(self, _name: str) -> dict:
+        queue = self.get_queue(_name=_name)
+        try:
+            res = self.client.get_queue_attributes(QueueUrl=queue.url, AttributeNames=['All'])
+        except ClientError as e:
+            print('It is failed to get attributes of the queue.')
+            res = None
+
+        return res
+
+    def get_num_msg(self, _name: str) -> int:
+        queue_attr = self.get_attributes(_name=_name)
+        return int(queue_attr['Attributes']['ApproximateNumberOfMessages'])
 
 
 if __name__=='__main__':
