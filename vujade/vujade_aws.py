@@ -48,7 +48,7 @@ def get_aws_mode_stepfunctions() -> Set[str]:
 
 
 class BaseAWS(object):
-    def __init__(self, _spath_aws: str, _access_key: Optional[str] = None, _secret_key: Optional[str] = None):
+    def __init__(self, _spath_aws: str, _access_key: Optional[str] = None, _secret_key: Optional[str] = None) -> None:
         super(BaseAWS, self).__init__()
         self.path_aws = path_.Path(_spath=_spath_aws)
         if (_access_key is None) or (_secret_key is None):
@@ -73,7 +73,7 @@ class BaseAWS(object):
         return client
 
     @staticmethod
-    def install_awscli():
+    def install_awscli() -> None:
         url_awscliv2_zip = 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip'
         path_awscliv2_zip = path_.Path(_spath=os.path.join(os.getcwd(), 'awscliv2.zip'))
         path_awscliv2 = path_.Path(_spath=os.path.join(os.getcwd(), 'aws'))
@@ -117,7 +117,7 @@ class BaseAWS(object):
 
 
 class S3(BaseAWS):
-    def __init__(self, _mode: str, _access_key: Optional[str] = None, _secret_key: Optional[str] = None, _spath_aws: str = os.path.join(str(Path.home()), '.aws')):
+    def __init__(self, _mode: str, _access_key: Optional[str] = None, _secret_key: Optional[str] = None, _spath_aws: str = os.path.join(str(Path.home()), '.aws')) -> None:
         super(S3, self).__init__(_spath_aws=_spath_aws, _access_key=_access_key, _secret_key=_secret_key)
         self.mode = _mode
 
@@ -187,7 +187,7 @@ class S3(BaseAWS):
 
 
 class StepFunctions(BaseAWS):
-    def __init__(self, _spath_aws: str, _mode: str, _access_key: Optional[str] = None, _secret_key: Optional[str] = None):
+    def __init__(self, _mode: str, _access_key: Optional[str] = None, _secret_key: Optional[str] = None, _spath_aws: str = os.path.join(str(Path.home()), '.aws')) -> None:
         super(StepFunctions, self).__init__(_spath_aws=_spath_aws, _access_key=_access_key, _secret_key=_secret_key)
         self.mode = _mode
 
@@ -313,6 +313,149 @@ class SQS(BaseAWS):
     def get_num_msg(self, _name: str) -> int:
         queue_attr = self.get_attributes(_name=_name)
         return int(queue_attr['Attributes']['ApproximateNumberOfMessages'])
+
+
+class DynamoDB(BaseAWS):
+    def __init__(self, _access_key: Optional[str] = None, _secret_key: Optional[str] = None, _spath_aws: str = os.path.join(str(Path.home()), '.aws')) -> None:
+        """
+        Usage:
+            param_name_table = 'DynamoDB-Test'
+            param_item = {
+                'request_id': str(uuid.uuid4()),
+                'name_user': 'usrname',
+                'key_1': 1,
+                'key_2': 2,
+                'key_3': 'value_3',
+                'key_4': 'value_4'
+            }
+            param_key = {'request_id': 'a455b494-7fa3-46ce-bc9b-aa562a5db85d', 'name_user': 'usrname'}
+            param_update_expression = 'SET key_1=:key_1_replaced, key_2=:100 REMOVE #key_3, #key_4'
+
+            dynamo_db = DynamoDB(_access_key=access_key, _secret_key=secret_key)
+            dynamo_db.list_tables()
+            dynamo_db.get_table(_name_table=param_name_table)
+            dynamo_db.scan(_name_table=param_name_table)
+            dynamo_db.create(_name_table=param_name_table, _item=param_item)
+            dynamo_db.read(_name_table=param_name_table, _key=param_key)
+            dynamo_db.update(_name_table=param_name_table, _key=param_key, _update_expression=param_update_expression)
+            dynamo_db.delete(_name_table=param_name_table, _key=param_key)
+        """
+        super(DynamoDB, self).__init__(_spath_aws=_spath_aws, _access_key=_access_key, _secret_key=_secret_key)
+        self.resource = self._get_resource(_name='dynamodb')
+        self.client = self._get_client(_name='dynamodb')
+
+    def list_tables(self) -> dict:
+        return self.client.list_tables()
+
+    def get_table(self, _name_table: str):
+        return self.resource.Table(_name_table)
+
+    def scan(self, _name_table: str) -> dict:
+        table = self.get_table(_name_table=_name_table)
+        return table.scan()
+
+    def create(self, _name_table: str, _item: dict) -> dict:
+        table = self.get_table(_name_table=_name_table)
+        return table.put_item(Item=_item)
+
+    def read(self, _name_table: str, _key: dict):
+        table = self.get_table(_name_table=_name_table)
+
+        try:
+            response = table.get_item(Key=_key)['Item']
+        except Exception as e:
+            print('[FAIL] DynamoDB-read; Error: {}.'.format(e))
+            response = None
+
+        return response
+
+    def update(self, _name_table: str, _key: dict, _update_expression: str, _return_values: str = 'UPDATED_NEW'):
+        table = self.get_table(_name_table=_name_table)
+        exp_attr_names, exp_attr_values = self._get_params_update(_update_expression=_update_expression)
+
+        kwargns = dict()
+        if exp_attr_names is not None:
+            kwargns['ExpressionAttributeNames'] = exp_attr_names
+        if exp_attr_values is not None:
+            kwargns['ExpressionAttributeValues'] = exp_attr_values
+
+        try:
+            response = table.update_item(
+                Key=_key,
+                UpdateExpression=_update_expression,
+                ReturnValues=_return_values,
+                **kwargns
+            )
+        except Exception as e:
+            print('[FAIL] DynamoDB-update; Error: {}.'.format(e))
+            response = None
+
+        return response
+
+    def delete(self, _name_table: str, _key: dict):
+        table = self.get_table(_name_table=_name_table)
+
+        try:
+            response = table.delete_item(Key=_key)
+        except Exception as e:
+            print('[FAIL] DynamoDB-delete; Error: {}.'.format(e))
+            response = None
+
+        return response
+
+    @classmethod
+    def _get_params_update(self, _update_expression: str) -> tuple:
+        dict_exp_attr_names = dict()
+        dict_exp_attr_values = dict()
+        list_exp_attr_names = list()
+        list_exp_attr_values = list()
+        len_update_expression = len(_update_expression)
+        idx_curr = 0
+
+        while idx_curr < len_update_expression:
+            char_curr = _update_expression[idx_curr]
+
+            # ExpressionAttributeNames
+            if char_curr == '#':
+                exp_attr_name = ''
+                idy_curr = idx_curr
+                while (idy_curr < len_update_expression) and (not _update_expression[idy_curr] in {',', ' '}):
+                    exp_attr_name += _update_expression[idy_curr]
+                    idy_curr += 1
+
+                list_exp_attr_names.append(exp_attr_name)
+                idx_curr = idy_curr
+
+            # ExpressionAttributeValues
+            if char_curr == ':':
+                exp_attr_val = ''
+                idy_curr = idx_curr
+                while (idy_curr < len_update_expression) and (not _update_expression[idy_curr] in {',', ' '}):
+                    exp_attr_val += _update_expression[idy_curr]
+                    idy_curr += 1
+
+                list_exp_attr_values.append(exp_attr_val)
+                idx_curr = idy_curr
+
+            idx_curr +=1
+
+        # ExpressionAttributeNames
+        if list_exp_attr_names: # Not-empty
+            res_exp_attr_names = dict()
+            for _idx, _exp_attr_name in enumerate(list_exp_attr_names):
+                res_exp_attr_names[_exp_attr_name] = _exp_attr_name[1:]
+        else:
+            res_exp_attr_names = None
+
+        # ExpressionAttributeValues
+        if list_exp_attr_values: # Not-empty
+            res_exp_attr_values = dict()
+            for _idx, _exp_attr_val in enumerate(list_exp_attr_values):
+                res_exp_attr_values[_exp_attr_val] = _exp_attr_val[1:]
+        else:
+            res_exp_attr_values = None
+
+        return res_exp_attr_names, res_exp_attr_values
 
 
 if __name__=='__main__':
