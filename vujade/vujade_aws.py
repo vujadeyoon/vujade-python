@@ -48,17 +48,17 @@ def get_aws_mode_stepfunctions() -> Set[str]:
 
 
 class BaseAWS(object):
-    def __init__(self, _spath_aws: str, _access_key: Optional[str] = None, _secret_key: Optional[str] = None) -> None:
+    def __init__(self, _spath_aws: str, _access_key: Optional[str] = None, _secret_key: Optional[str] = None, _region: str = 'ap-northeast-2') -> None:
         super(BaseAWS, self).__init__()
         self.path_aws = path_.Path(_spath=_spath_aws)
         if (_access_key is None) or (_secret_key is None):
-            self.access_key, self.secret_key = self._get_aws_access_secret_keys()
+            self.region, self.access_key, self.secret_key = self._get_aws_info()
         else:
-            self.access_key, self.secret_key = _access_key, _secret_key
+            self.region, self.access_key, self.secret_key = _region, _access_key, _secret_key
 
     def _get_resource(self, _name: str):
         try:
-            resource = boto3.resource(_name, aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key)
+            resource = boto3.resource(_name, region_name=self.region, aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key)
         except Exception as e:
             raise ConnectionError('It is failed to get a {} resource with the exception: {}.'.format(_name, e))
 
@@ -66,7 +66,7 @@ class BaseAWS(object):
 
     def _get_client(self, _name: str):
         try:
-            client = boto3.client(_name, aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key)
+            client = boto3.client(_name, region_name=self.region, aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key)
         except Exception as e:
             raise ConnectionError('It is failed to get a {} client with the exception: {}.'.format(_name, e))
 
@@ -88,11 +88,22 @@ class BaseAWS(object):
         path_awscliv2_zip.unlink(_missing_ok=True)
         path_awscliv2.rmtree(_ignore_errors=False, _onerror=None)
 
-    def _get_aws_access_secret_keys(self) -> tuple:
+    def _get_aws_info(self) -> tuple:
+        res = dict()
+        path_config = path_.Path(_spath=os.path.join(self.path_aws.str, 'config'))
         path_credentials = path_.Path(_spath=os.path.join(self.path_aws.str, 'credentials'))
 
+        if path_config.path.is_file() is True:
+            lines = text_.TEXT(_spath_filename=path_config.str, _mode='r').read_lines()
+            for _idx, _line in enumerate(lines):
+                _line = _line.rstrip('\n')
+                if '=' in _line:
+                    key, value = _line.split(' = ')
+                    res[key] = value
+        else:
+            raise FileNotFoundError('The AWS CLI should be installed using the AWS.install_awscli().')
+
         if path_credentials.path.is_file() is True:
-            res = dict()
             lines = text_.TEXT(_spath_filename=path_credentials.str, _mode='r').read_lines()
             for _idx, _line in enumerate(lines):
                 _line = _line.rstrip('\n')
@@ -102,7 +113,7 @@ class BaseAWS(object):
         else:
             raise FileNotFoundError('The AWS CLI should be installed using the AWS.install_awscli().')
 
-        return res['aws_access_key_id'], res['aws_secret_access_key']
+        return res['region'], res['aws_access_key_id'], res['aws_secret_access_key']
 
     @utils_.deprecated
     def enroll_credentials(self, _spath_aws: str, _region: str = 'ap-northeast-2', _output: str = 'json') -> None:

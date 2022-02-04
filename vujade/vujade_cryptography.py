@@ -96,6 +96,9 @@ class AsymmetricCryptography(object):
             print('The decryption is successful.')
         else:
             print('The decryption is failed.')
+
+        encrypt_key = str(AsymmetricEncryptDecrypt.encrypt(param_spath_pem_public, 'KEY_TO_BE_ENCRYPTED'.encode('utf-8')))
+        decrypt_key = AsymmetricEncryptDecrypt.decrypt(param_spath_pem_private, _data_byte=ast.literal_eval(encrypt_key)).decode('utf-8')
     """
 
     @classmethod
