@@ -340,7 +340,10 @@ class DynamoDB(BaseAWS):
                 'key_4': 'value_4'
             }
             param_key = {'request_id': 'a455b494-7fa3-46ce-bc9b-aa562a5db85d', 'name_user': 'usrname'}
-            param_update_expression = 'SET key_1=:key_1_replaced, key_2=:100 REMOVE #key_3, #key_4'
+            param_attr_val_1 = 'example_1: 1111-22-33'
+            param_attr_val_2 = 'example_2: 11:22:33'
+            param_attr_name_1 = 'to_be_deleted'
+            param_update_expression = f'SET attr_name_1=:{param_attr_val_1}, attr_name_2=:{param_attr_val_2} REMOVE {param_attr_name_1}'
 
             dynamo_db = DynamoDB(_access_key=access_key, _secret_key=secret_key)
             dynamo_db.list_tables()
@@ -354,6 +357,9 @@ class DynamoDB(BaseAWS):
         super(DynamoDB, self).__init__(_spath_aws=_spath_aws, _access_key=_access_key, _secret_key=_secret_key)
         self.resource = self._get_resource(_name='dynamodb')
         self.client = self._get_client(_name='dynamodb')
+        self.update_expression_action_value_supported = {'SET', 'REMOVE'}
+        self.update_expression_action_value_not_supported = {'ADD', 'DELETE'}
+        self.update_expression_action_value = set.union(self.update_expression_action_value_supported, self.update_expression_action_value_not_supported)
 
     def list_tables(self) -> dict:
         return self.client.list_tables()
@@ -375,30 +381,35 @@ class DynamoDB(BaseAWS):
         try:
             response = table.get_item(Key=_key)['Item']
         except Exception as e:
-            print('[FAIL] DynamoDB-read; Error: {}.'.format(e))
+            print('It is failed to read the item in the DynamoDB; Exception: {}.'.format(e))
             response = None
 
         return response
 
     def update(self, _name_table: str, _key: dict, _update_expression: str, _return_values: str = 'UPDATED_NEW'):
-        table = self.get_table(_name_table=_name_table)
-        exp_attr_names, exp_attr_values = self._get_params_update(_update_expression=_update_expression)
+        if self._is_valid_update(_update_expression=_update_expression) is True:
+            table = self.get_table(_name_table=_name_table)
+            update_expression_new, expression_attribute_names_new, expression_attribute_values_new = self._get_params(_update_expression=_update_expression)
 
-        kwargns = dict()
-        if exp_attr_names is not None:
-            kwargns['ExpressionAttributeNames'] = exp_attr_names
-        if exp_attr_values is not None:
-            kwargns['ExpressionAttributeValues'] = exp_attr_values
+            kwargns = dict()
+            if expression_attribute_names_new is not None:
+                kwargns['ExpressionAttributeNames'] = expression_attribute_names_new
+            if expression_attribute_values_new is not None:
+                kwargns['ExpressionAttributeValues'] = expression_attribute_values_new
 
-        try:
-            response = table.update_item(
-                Key=_key,
-                UpdateExpression=_update_expression,
-                ReturnValues=_return_values,
-                **kwargns
-            )
-        except Exception as e:
-            print('[FAIL] DynamoDB-update; Error: {}.'.format(e))
+            try:
+                response = table.update_item(
+                    Key=_key,
+                    UpdateExpression=update_expression_new,
+                    ReturnValues=_return_values,
+                    **kwargns
+                )
+            except Exception as e:
+                print('It is failed to update the item in the DynamoDB; Exception: {}.'.format(e))
+                response = None
+
+        else:
+            print('The action values in _update_expression has not been supported yet.')
             response = None
 
         return response
@@ -409,64 +420,72 @@ class DynamoDB(BaseAWS):
         try:
             response = table.delete_item(Key=_key)
         except Exception as e:
-            print('[FAIL] DynamoDB-delete; Error: {}.'.format(e))
+            print('It is failed to delete the item in the DynamoDB; Exception: {}.'.format(e))
             response = None
 
         return response
 
-    @classmethod
-    def _get_params_update(self, _update_expression: str) -> tuple:
-        dict_exp_attr_names = dict()
-        dict_exp_attr_values = dict()
-        list_exp_attr_names = list()
-        list_exp_attr_values = list()
-        len_update_expression = len(_update_expression)
-        idx_curr = 0
+    def _is_valid_update(self, _update_expression: str) -> bool:
+        res = True
+        for _idx, _action_val in enumerate(self.update_expression_action_value_not_supported):
+            if _action_val in _update_expression:
+                res = False
+                break
 
-        while idx_curr < len_update_expression:
-            char_curr = _update_expression[idx_curr]
+        return res
 
-            # ExpressionAttributeNames
-            if char_curr == '#':
-                exp_attr_name = ''
-                idy_curr = idx_curr
-                while (idy_curr < len_update_expression) and (not _update_expression[idy_curr] in {',', ' '}):
-                    exp_attr_name += _update_expression[idy_curr]
-                    idy_curr += 1
+    def _get_params(self, _update_expression: str) -> tuple:
+        update_expression_new = ''
+        expression_attribute_names_new = dict()
+        expression_attribute_values_new = dict()
 
-                list_exp_attr_names.append(exp_attr_name)
-                idx_curr = idy_curr
+        splitted_update_expression = self._split_update_expression(_update_expression=_update_expression)
 
-            # ExpressionAttributeValues
-            if char_curr == ':':
-                exp_attr_val = ''
-                idy_curr = idx_curr
-                while (idy_curr < len_update_expression) and (not _update_expression[idy_curr] in {',', ' '}):
-                    exp_attr_val += _update_expression[idy_curr]
-                    idy_curr += 1
+        for _idx, _element_splitted_update_expression in enumerate(splitted_update_expression):
+            for _idy, _action_val in enumerate(self.update_expression_action_value):
+                if _action_val in _element_splitted_update_expression:
+                    update_expression_new += ' {}'.format(_action_val)
+                    attr_name_val = _element_splitted_update_expression.replace('{} '.format(_action_val), '').split(', ')
+                    for _idz, _attr_name_val in enumerate(attr_name_val):
+                        if _action_val == 'SET':
+                            attr_name, attr_val = _attr_name_val.split('=:')
+                            update_expression_new += ' #name_{}_{}=:val_{}_{},'.format(_idy, _idz, _idy, _idz)
+                            expression_attribute_names_new['#name_{}_{}'.format(_idy, _idz)] = attr_name
+                            expression_attribute_values_new[':val_{}_{}'.format(_idy, _idz)] = attr_val
+                        elif _action_val == 'REMOVE':
+                            attr_name = _attr_name_val
+                            update_expression_new += ' #name_{}_{},'.format(_idy, _idz)
+                            expression_attribute_names_new['#name_{}_{}'.format(_idy, _idz)] = attr_name
+                        elif _action_val == 'ADD':
+                            raise NotImplementedError
+                        elif _action_val == 'DELETE':
+                            raise NotImplementedError
+                    break
 
-                list_exp_attr_values.append(exp_attr_val)
-                idx_curr = idy_curr
+        update_expression_new = update_expression_new.lstrip(' ').rstrip(',')
 
-            idx_curr +=1
+        for _idx, _action_val in enumerate(self.update_expression_action_value):
+            if _action_val in update_expression_new:
+                update_expression_new= update_expression_new.replace(', {}'.format(_action_val), ' {}'.format(_action_val))
 
-        # ExpressionAttributeNames
-        if list_exp_attr_names: # Not-empty
-            res_exp_attr_names = dict()
-            for _idx, _exp_attr_name in enumerate(list_exp_attr_names):
-                res_exp_attr_names[_exp_attr_name] = _exp_attr_name[1:]
-        else:
-            res_exp_attr_names = None
+        return update_expression_new, expression_attribute_names_new, expression_attribute_values_new
 
-        # ExpressionAttributeValues
-        if list_exp_attr_values: # Not-empty
-            res_exp_attr_values = dict()
-            for _idx, _exp_attr_val in enumerate(list_exp_attr_values):
-                res_exp_attr_values[_exp_attr_val] = _exp_attr_val[1:]
-        else:
-            res_exp_attr_values = None
+    def _split_update_expression(self, _update_expression: str) -> list:
+        res = list()
+        idx_update_expression_action_value = list()
 
-        return res_exp_attr_names, res_exp_attr_values
+        for _idx, _action_val in enumerate(self.update_expression_action_value):
+            idx_find = _update_expression.find(_action_val)
+            if 0 <= idx_find:
+                idx_update_expression_action_value.append(idx_find)
+
+        idx_update_expression_action_value.sort()
+        idx_update_expression_action_value.append(len(_update_expression))
+
+        for _idx in range(len(idx_update_expression_action_value) - 1):
+            res.append(_update_expression[idx_update_expression_action_value[_idx]:idx_update_expression_action_value[_idx + 1]].rstrip(' '))
+
+        return res
 
 
 if __name__=='__main__':
