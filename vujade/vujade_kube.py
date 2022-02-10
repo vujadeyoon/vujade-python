@@ -10,6 +10,40 @@ Description: A module for kubernetes
 
 from kubernetes import client, config
 from vujade import vujade_str as str_
+from vujade import vujade_path as path_
+
+
+class KubeEnvVariables(object):
+    def __init__(self, _spath_configmap: str, _spath_secret: str) -> None:
+        super(KubeEnvVariables, self).__init__()
+        self.path_configmap = path_.Path(_spath_configmap)
+        self.path_secret = path_.Path(_spath_secret)
+
+    def get_configmap(self, _is_print: bool = False) -> dict:
+        res = dict()
+        try:
+            for _idx, _path_cfg_item in enumerate(self.path_configmap.path.glob('[!..]*')):
+                with open(str(_path_cfg_item), 'r') as f:
+                    res[_path_cfg_item.name] = f.readline()
+            if _is_print is True:
+                print('The config map: {}'.format(res))
+        except Exception as e:
+            print('It is failed to get config map values; Exception: {}'.format(e))
+
+        return res
+
+    def get_secret(self, _is_print: bool = False) -> dict:
+        res = dict()
+        try:
+            for _idx, _path_secret_item in enumerate(self.path_secret.path.glob('[!..]*')):
+                with open(str(_path_secret_item), 'r') as f:
+                    res[_path_secret_item.name] = f.readline().rstrip('\n')
+            if _is_print is True:
+                print('The secret: {}'.format(res))
+        except Exception as e:
+            print('It is failed to get secret values; Exception: {}'.format(e))
+
+        return res
 
 
 def get_pod(_ip_adrr: str, _namespace: str, _watch: bool = False) -> str:
