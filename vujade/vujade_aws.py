@@ -488,6 +488,60 @@ class DynamoDB(BaseAWS):
         return res
 
 
+class EC2(BaseAWS):
+    def __init__(self, _access_key: Optional[str] = None, _secret_key: Optional[str] = None, _spath_aws: str = os.path.join(str(Path.home()), '.aws'), _ljust: int = 25) -> None:
+        super(EC2, self).__init__(_spath_aws=_spath_aws, _access_key=_access_key, _secret_key=_secret_key)
+        self.ljust = _ljust
+        self.resource = self._get_resource(_name='ec2')
+        self.client = self._get_client(_name='ec2')
+        self.instances = self._get_instances()
+
+    def list(self) -> None:
+        print("{} {} {} {} {} {} {} {}".format('No.'.ljust(5), 'Tag Name'.ljust(self.ljust), 'Instance ID'.ljust(self.ljust), 'Instance type'.ljust(self.ljust), 'Public IPv4 address'.ljust(self.ljust), 'Availability Zone'.ljust(self.ljust), 'Key name'.ljust(self.ljust), 'Instance state'))
+        for _idx, _instance in enumerate(self.instances):
+            print(f"{str(_idx).ljust(5)} "
+                  f"{_instance['Tags'][:(self.ljust - 2)].ljust(self.ljust)} "
+                  f"{_instance['InstanceId'][:(self.ljust - 2)].ljust(self.ljust)} "
+                  f"{_instance['InstanceType'].ljust(self.ljust)} "
+                  f"{_instance['PublicIpAddress'].ljust(self.ljust)} "
+                  f"{_instance['AvailabilityZone'].ljust(self.ljust)} "
+                  f"{_instance['KeyName'].ljust(self.ljust)} "
+                  f"{_instance['State']}")
+
+    def _get_instances(self) -> list:
+        res = list()
+        instances_reservation = self.client.describe_instances()['Reservations']
+
+        for _idx, _instances_reservation in enumerate(instances_reservation):
+            info_instance = _instances_reservation['Instances'][0]
+            res.append({
+                'ImageId': self._get_information(info_instance, _key_1='ImageId', _key_2=None),
+                'InstanceId': self._get_information(info_instance, _key_1='InstanceId', _key_2=None),
+                'InstanceType': self._get_information(info_instance, _key_1='InstanceType', _key_2=None),
+                'KeyName': self._get_information(info_instance, _key_1='KeyName', _key_2=None),
+                'AvailabilityZone': self._get_information(info_instance, _key_1='Placement', _key_2='AvailabilityZone'),
+                'PublicIpAddress': self._get_information(info_instance, _key_1='PublicIpAddress', _key_2=None),
+                'State': self._get_information(info_instance, _key_1='State', _key_2='Name'),
+                'Tags': self._get_information(info_instance, _key_1='Tags', _key_2='Value')
+            })
+
+        return res
+
+    def _get_information(self, info_instance: dict, _key_1: str, _key_2: Optional[str] = None) -> str:
+        try:
+            if _key_2 is None:
+                res = info_instance[_key_1]
+            else:
+                if _key_1 == 'Tags':
+                    res = info_instance[_key_1][0][_key_2]
+                else:
+                    res = info_instance[_key_1][_key_2]
+        except Exception as e:
+            res = 'None'
+
+        return res
+
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='AWS S3 Boto3')
     parser.add_argument('--mode', '-M', type=str, default='upload', help='Option: awscli; enroll; upload; download; delete.')
