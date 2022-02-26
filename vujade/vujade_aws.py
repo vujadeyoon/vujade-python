@@ -371,6 +371,12 @@ class DynamoDB(BaseAWS):
         table = self.get_table(_name_table=_name_table)
         return table.scan()
 
+    def query(self, _name_table: str, _key_condition_expression) -> list:
+        table = self.get_table(_name_table=_name_table)
+        response = table.query(KeyConditionExpression=_key_condition_expression)
+
+        return response['Items']
+
     def create(self, _name_table: str, _item: dict) -> dict:
         table = self.get_table(_name_table=_name_table)
         return table.put_item(Item=_item)
