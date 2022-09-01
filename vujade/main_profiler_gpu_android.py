@@ -30,9 +30,16 @@ if __name__ == '__main__':
 
         if is_success is True:
             temp_gpu = int(temp_gpu.rstrip().decode('utf-8'))
-            usage_gpu = 100 * ((temp_gpu - args.temp_gpu_min) / (args.temp_gpu_max - args.temp_gpu_min))
-            str_info = '[PID: {}] GPU temp.: {}; GPU usage: {:.2f}%.'.format(utils_.getpid(), temp_gpu, usage_gpu)
-            if (args.temp_gpu_criteria < usage_gpu):
+            ratio_usage_gpu = (temp_gpu - args.temp_gpu_min) / (args.temp_gpu_max - args.temp_gpu_min)
+            if ratio_usage_gpu < 0.0:
+                ratio_usage_gpu = 0.0
+            elif 1.0 < ratio_usage_gpu:
+                ratio_usage_gpu = 1.0
+            else:
+                pass
+            percentage_usage_gpu = 100 * ratio_usage_gpu
+            str_info = '[PID: {}] GPU temp.: {}; GPU usage: {:.2f}%.'.format(utils_.getpid(), temp_gpu, percentage_usage_gpu)
+            if (args.temp_gpu_criteria < percentage_usage_gpu):
                 utils_.printf_color(_str=str_info + ' The GPU may be used.', _color='WARNING', _is_pause=False)
             else:
                 printf(str_info, _is_pause=False)

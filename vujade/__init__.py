@@ -8,12 +8,14 @@ Description: A method-wrapper for the package, vujade.
 """
 
 
-__date__ = '211022'
-__version__ = '0.4.8'
+__date__ = '220902'
+__version__ = '0.5.7'
 __all__ = ['main_profiler',
+           'main_profiler_gpu_android',
            'vujade_argparse',
            'vujade_aws',
            'vujade_compression',
+           'vujade_cryptography',
            'vujade_csv',
            'vujade_datastructure',
            'vujade_debug',
@@ -43,5 +45,6 @@ __all__ = ['main_profiler',
            'vujade_transforms',
            'vujade_utils',
            'vujade_videocv',
+           'vujade_xlsx',
            'vujade_yaml'
            ]
