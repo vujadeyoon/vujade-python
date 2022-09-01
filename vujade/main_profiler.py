@@ -4,7 +4,7 @@ Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
 Title: main_profiler.py
-Description: A main python script to profile time, main memory and gpu memory.
+Description: A main python script to profile time, main memory and GPU memory.
 """
 
 

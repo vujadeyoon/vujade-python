@@ -35,7 +35,7 @@ import math
 import torch
 import numpy as np
 import pprint as pprint_
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 from itertools import product, compress
 from vujade import vujade_debug as debug_
 
@@ -117,11 +117,13 @@ class SystemCommand(object):
         utils_.SystemCommand.run_timeout(_timeout_sec=5, _command=cmd, _is_daemon=False, _is_subprocess=True)
         print('[MAIN] End: {}')
     """
+    result = None
+
     def __init__(self):
         super(SystemCommand, self).__init__()
 
     @classmethod
-    def run(cls, _command: str, _is_daemon: bool = False, _res: Optional[dict] = None, _is_subprocess: bool = True) -> bool:
+    def run(cls, _command: str, _is_daemon: bool = False, _res: Optional[dict] = None, _is_subprocess: bool = True) -> tuple:
         if _is_daemon is True:
             command = '{} &'.format(_command)
         else:
@@ -130,10 +132,13 @@ class SystemCommand(object):
         if _is_subprocess is True:
             try:
                 p = subprocess.run(shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
                 if p.returncode != 0:
                     is_success = False
                 else:
                     is_success = not b'Traceback' in p.stderr
+                if is_success is True:
+                    cls.result = p.stdout
             except Exception as e:
                 is_success = False
         else:
@@ -146,7 +151,7 @@ class SystemCommand(object):
         if _res is not None:
             _res['is_success'] = is_success
 
-        return is_success
+        return is_success, cls.result
 
     @classmethod
     def run_timeout(cls, _timeout_sec: int, _command: str, _is_daemon: bool = False, _is_subprocess: bool = True, _remove_single_quotation_mark: bool = True) -> Union[bool, str]:
