@@ -17,7 +17,7 @@ class YAML(object):
         self.spath_filename = _spath_filename
 
     def read(self) -> None:
-        with open(self.spath_filename) as f:
+        with open(self.spath_filename, 'r') as f:
             data = yaml.load(f, Loader=yaml.FullLoader)
 
         return data
