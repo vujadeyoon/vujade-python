@@ -8,9 +8,10 @@ Description: A method-wrapper for the package, vujade.
 """
 
 
-__date__ = '220903'
-__version__ = '0.5.8'
-__all__ = ['main_profiler',
+__date__ = '221005'
+__version__ = '0.5.9'
+__all__ = ['main_encdec',
+           'main_profiler',
            'main_profiler_gpu_android',
            'vujade_argparse',
            'vujade_aws',
@@ -38,6 +39,7 @@ __all__ = ['main_profiler',
            'vujade_opencv',
            'vujade_path',
            'vujade_profiler',
+           'vujade_random',
            'vujade_resource',
            'vujade_str',
            'vujade_tensorboard',
