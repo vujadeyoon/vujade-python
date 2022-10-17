@@ -90,13 +90,13 @@ class VideoReaderFFmpeg(object):
 
 
 class VideoWriterFFmpeg(object):
-    def __init__(self, _spath_video: str, _resolution: tuple = (1080, 1920), _fps: float = 30.0, _qp_val: int = 0, _pix_fmt: str = 'bgr24', _codec: str = 'libx264'):
+    def __init__(self, _spath_video: str, _size: tuple = (1080, 1920), _fps: float = 30.0, _qp_val: int = 0, _pix_fmt: str = 'bgr24', _codec: str = 'libx264'):
         if _spath_video is None:
             raise ValueError('The parameter, _spath_video, should be assigned.')
 
         self.spath_video = _spath_video
-        self.height = int(_resolution[0])
-        self.width = int(_resolution[1])
+        self.height = int(_size[0])
+        self.width = int(_size[1])
         self.fps = float(_fps)
         self.qp_val = _qp_val
         self.pix_fmt = _pix_fmt
@@ -330,13 +330,13 @@ class VideoReaderCV(object):
 
 
 class VideoWriterCV(object):
-    def __init__(self, _spath_video: str, _resolution: tuple = (1920, 1080), _fps: float = 30.0, _fourcc: int = cv2.VideoWriter_fourcc(*'MJPG')):
+    def __init__(self, _spath_video: str, _size: tuple = (1080, 1920), _fps: float = 30.0, _fourcc: int = cv2.VideoWriter_fourcc(*'MJPG')):
         if _spath_video is None:
             raise ValueError('The variable, _spath_video, should be assigned.')
 
         self.spath_video = _spath_video
-        self.width = int(_resolution[0])
-        self.height = int(_resolution[1])
+        self.height = int(_size[0])
+        self.width = int(_size[1])
         self.fps = float(_fps)
         self.fourcc = _fourcc
         self.wri = self._open()
