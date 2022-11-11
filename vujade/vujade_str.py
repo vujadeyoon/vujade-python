@@ -11,7 +11,11 @@ Description: A module for string
 import argparse
 import ast
 import json
-from typing import Union, Optional
+from typing import Optional, Tuple, Union
+
+
+def get_alphabets(_columns: Tuple[str, str]) -> tuple:
+    return tuple(map(chr, tuple(range(ord(_columns[0]), ord(_columns[1]) + 1))))
 
 
 def rstrip(_str: str, _chars: Optional[str] = None) -> str:

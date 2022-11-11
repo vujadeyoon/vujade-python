@@ -330,13 +330,13 @@ def is_ndarr(_var):
     return isinstance(_var, (np.ndarray, np.generic))
 
 
-def get_env_var(_name_var: str) -> str:
+def get_env_var(_name_var: str, _default: str = '') -> str:
     """This function is intended to get a system environmental variable.
 
         :param str _name_var: A name of the system environmental variable
         :returns: The corresponding value for the system environmental variable
     """
-    return os.environ.get(_name_var, '')
+    return os.environ.get(_name_var, _default)
 
 
 def get_command_cli(_prefix='python3 '):
@@ -437,16 +437,48 @@ def get_device(_is_cuda):
     return device
 
 
-def set_seed(_device, _seed=1234):
-    device = str(_device)
-    random.seed(_seed)
-    np.random.seed(_seed)
-    torch.manual_seed(_seed)
-    if device == 'cuda':
-        torch.cuda.manual_seed(_seed)
-        torch.cuda.manual_seed_all(_seed)
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
+class SetSeed(object):
+    seed = 1234
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    generator = torch.Generator()
+
+    @classmethod
+    def _set_device(cls, _device: Optional[torch.device] = None) -> None:
+        if _device is not None:
+            cls.device = _device
+
+    @classmethod
+    def _set_seed(cls, _seed: Optional[int] = None) -> None:
+        if _seed is not None:
+            cls.seed = _seed
+
+    @classmethod
+    def fix_seed(cls, _device: Optional[torch.device] = None, _seed: Optional[int] = None, _is_use_deterministic_algorithm: bool = True) -> None:
+        if _device is not None:
+            cls._set_device(_device=_device)
+
+        if _seed is not None:
+            cls._set_seed(_seed=_seed)
+
+        random.seed(cls.seed)
+        np.random.seed(cls.seed)
+        torch.manual_seed(cls.seed)
+        cls.generator.manual_seed(cls.seed)
+        if cls.device == torch.device('cuda'):
+            torch.cuda.manual_seed(cls.seed)
+            torch.cuda.manual_seed_all(cls.seed)
+            torch.backends.cudnn.deterministic = True
+            torch.backends.cudnn.benchmark = False
+        if _is_use_deterministic_algorithm is True:
+            torch.use_deterministic_algorithms(_is_use_deterministic_algorithm)
+
+    @classmethod
+    def get_worker_seed(cls, _worker_id) -> None:
+        cls.fix_seed()
+
+    @classmethod
+    def get_generator(cls) -> torch._C.Generator:
+        return cls.generator
 
 
 def var2mat(var_name, var):
