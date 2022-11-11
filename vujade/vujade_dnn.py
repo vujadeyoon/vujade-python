@@ -16,12 +16,200 @@ Acknowledgement:
 
 
 import math
+import copy
 import _collections
+import cpuinfo
 import torch
+import torchvision
+import torchsummary
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision
+from typing import Optional
+from ptflops import get_model_complexity_info
 from vujade import vujade_datastructure as ds_
+from vujade import vujade_profiler as prof_
+from vujade import vujade_flops_counter as flops_counter_
+from vujade.vujade_debug import printf
+
+
+COMPLEXITY_TIME_ITER = 10
+COMPLEXITY_TIME_WARMUP = 5
+
+
+class FeatureExtractor(nn.Module):
+    def __init__(self, _model, _layers: dict) -> None:
+        super(FeatureExtractor, self).__init__()
+        self.feature = torchvision.models._utils.IntermediateLayerGetter(_model, _layers)
+
+    def forward(self, _x) -> list:
+        return list(self.feature(_x).values())
+
+
+class CalculateComputationalCost(object):
+    # https://github.com/sovrasov/flops-counter.pytorch/issues/16
+    def __init__(self, _units_macs: str = 'GMac', _units_flops: str = 'GFlop', _units_params: Optional[str] = None, _precision: int = 2) -> None:
+        super(CalculateComputationalCost, self).__init__()
+        self.units_macs = _units_macs
+        self.units_flops = _units_flops
+        self.precision = _precision
+        self.units_params = _units_params
+        if self.units_params == 'None':
+            self.units_params = None
+
+    def run(self, _model, _input_res: tuple, _print_per_layer_stat: bool = False, _as_strings: bool = True, _verbose: bool = False) -> tuple:
+        macs, params = get_model_complexity_info(model=_model,
+                                                 input_res=_input_res,
+                                                 print_per_layer_stat=_print_per_layer_stat,
+                                                 as_strings=False,
+                                                 verbose=_verbose)
+        flops =  2.0 * macs
+
+        if _as_strings is True:
+            macs = self._macs_to_string(_macs=macs, _units=self.units_macs, _precision=self.precision)
+            flops = self._flops_to_string(_flops=flops, _units=self.units_flops, _precision=self.precision)
+            params = self._params_to_string(_params_num=params, _units=self.units_params, _precision=self.precision)
+
+        return macs, flops, params
+
+    def _macs_to_string(self, _macs: float, _units: Optional[str] = 'GMac', _precision: int = 2) -> str:
+        if _units is None:
+            if _macs // 10 ** 9 > 0:
+                return str(round(_macs / 10. ** 9, _precision)) + ' GMac'
+            elif _macs // 10 ** 6 > 0:
+                return str(round(_macs / 10. ** 6, _precision)) + ' MMac'
+            elif _macs // 10 ** 3 > 0:
+                return str(round(_macs / 10. ** 3, _precision)) + ' KMac'
+            else:
+                return str(_macs) + ' Mac'
+        else:
+            if _units == 'GMac':
+                return str(round(_macs / 10. ** 9, _precision)) + ' ' + _units
+            elif _units == 'MMac':
+                return str(round(_macs / 10. ** 6, _precision)) + ' ' + _units
+            elif _units == 'KMac':
+                return str(round(_macs / 10. ** 3, _precision)) + ' ' + _units
+            else:
+                return str(_macs) + ' Mac'
+
+    def _flops_to_string(self, _flops: float, _units: Optional[str] = 'GFlop', _precision: int = 2) -> str:
+        if _units is None:
+            if _flops // 10 ** 9 > 0:
+                return str(round(_flops / 10. ** 9, _precision)) + ' GFlop'
+            elif _flops // 10 ** 6 > 0:
+                return str(round(_flops / 10. ** 6, _precision)) + ' MFlop'
+            elif _flops // 10 ** 3 > 0:
+                return str(round(_flops / 10. ** 3, _precision)) + ' KFlop'
+            else:
+                return str(_flops) + ' Flop'
+        else:
+            if _units == 'GFlop':
+                return str(round(_flops / 10. ** 9, _precision)) + ' ' + _units
+            elif _units == 'MFlop':
+                return str(round(_flops / 10. ** 6, _precision)) + ' ' + _units
+            elif _units == 'KFlop':
+                return str(round(_flops / 10. ** 3, _precision)) + ' ' + _units
+            else:
+                return str(_flops) + ' Flop'
+
+    def _params_to_string(self, _params_num: int, _units: Optional[str] = None, _precision: int = 2) -> str:
+        if _units is None:
+            if _params_num // 10 ** 6 > 0:
+                return str(round(_params_num / 10 ** 6, 2)) + ' M'
+            elif _params_num // 10 ** 3:
+                return str(round(_params_num / 10 ** 3, 2)) + ' k'
+            else:
+                return str(_params_num)
+        else:
+            if _units == 'M':
+                return str(round(_params_num / 10. ** 6, _precision)) + ' ' + _units
+            elif _units == 'K':
+                return str(round(_params_num / 10. ** 3, _precision)) + ' ' + _units
+            else:
+                return str(_params_num)
+
+
+class DNNComplexity(object):
+    def __init__(self, _model_cpu, _input_res: tuple) -> None:
+        super(DNNComplexity, self).__init__()
+        self.model_cpu = _model_cpu
+        self.input_res = _input_res
+        self.is_cuda = torch.cuda.is_available()
+        self.device_name = torch.cuda.get_device_name(0) if self.is_cuda else cpuinfo.get_cpu_info()['brand_raw']
+        self.device = torch.device('cuda:0' if self.is_cuda else 'cpu')
+        self.tensor_cpu = torch.ones(1, *self.input_res, dtype=torch.float32)
+
+        if self.is_cuda:
+            self.model_gpu = copy.deepcopy(self.model_cpu).to(self.device)
+            self.tensor_gpu = self.tensor_cpu.to(self.device)
+
+    def develop(self) -> None:
+        self._complexity_space()
+
+    def show(self) -> None:
+        printf('The model name: {}'.format(self.model_cpu.__class__), _is_pause=False)
+        printf('The CUDA is available: {}.'.format(self.is_cuda), _is_pause=False)
+        printf('The current single device is {}.'.format(self.device_name), _is_pause=False)
+        self._complexity_space()
+        self._complexity_time_cpu()
+        if self.is_cuda:
+            self._complexity_time_gpu()
+
+    def summary(self) -> None:
+        self._summary(_batch_size=1, _device='cpu', _is_summary=True)
+
+    def _complexity_space(self) -> None:
+        macs, flops, params = CalculateComputationalCost(
+                    _units_macs='GMac',
+                    _units_flops='GFlop',
+                    _units_params=None,
+                    _precision=2).run(
+                    _model=self.model_cpu,
+                    _input_res=self.input_res,
+                    _print_per_layer_stat=False,
+                    _as_strings=True,
+                    _verbose=False)
+
+        printf('{:<25} {}.'.format('Tensor shape: ', self.input_res), _is_pause=False)
+        printf('{:<25} {}.'.format('Trainable parameters: ', params), _is_pause=False)
+        printf('{:<25} {}.'.format('Macs: ', macs), _is_pause=False)
+        printf('{:<25} {}.'.format('Flops: ', flops), _is_pause=False)
+
+    @prof_.measure_time(_iter=COMPLEXITY_TIME_ITER, _warmup=COMPLEXITY_TIME_WARMUP)
+    def _complexity_time_cpu(self) -> None:
+        self.model_cpu(self.tensor_cpu)
+
+    @prof_.measure_time(_iter=COMPLEXITY_TIME_ITER, _warmup=COMPLEXITY_TIME_WARMUP)
+    def _complexity_time_gpu(self) -> None:
+        self.model_gpu(self.tensor_gpu)
+
+    def _summary(self, _batch_size: int = 1, _device: str = 'cpu', _is_summary: bool = True) -> str:
+        if not _device in {'cpu', 'gpu'}:
+            raise ValueError
+
+        printf('{} Network summary.'.format(self.model_cpu.__class__.__name__), _is_pause=False)
+
+        if _is_summary is True:
+            torchsummary.summary(self.model_cpu, input_size=self.input_res, batch_size=_batch_size, device=_device)
+
+        tensor_input = torch.randn([1, *self.input_res], dtype=torch.float).to(_device)
+        counter = flops_counter_.add_flops_counting_methods(self.model_cpu)
+        counter.eval().start_flops_count()
+        counter(tensor_input)
+        str_1 = 'Input image resolution: ({}, {}, {}, {})'.format(_batch_size, *self.input_res)
+        str_2 = 'Trainable model parameters: {}'.format(self._count_parameters())
+        str_3 = 'Flops: {}'.format(flops_counter_.flops_to_string(counter.compute_average_flops_cost()))
+        printf(str_1, _is_pause=False)
+        printf(str_2, _is_pause=False)
+        printf(str_3, _is_pause=False)
+        printf('----------------------------------------------------------------', _is_pause=False)
+
+        return '{}; {}; {}.'.format(str_1, str_2, str_3)
+
+    def _count_parameters(self) -> int:
+        # Another option
+        # return filter(lambda p: p.requires_grad, self.parameters())
+        # return sum([np.prod(p.size()) for p in model_parameters])
+        return sum(p.numel() for p in self.model_cpu.parameters() if p.requires_grad)
 
 
 def default_conv(in_channels, out_channels, kernel_size, bias=True):

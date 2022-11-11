@@ -16,7 +16,7 @@ import cv2.ximgproc as ximgproc
 import pywt
 import matplotlib.pyplot as plt
 from PIL import Image
-from typing import Set
+from typing import Optional, Set
 from vujade import vujade_multiprocess as multiprocess_
 
 
@@ -82,7 +82,16 @@ class DWT2(object):
         return dwt2_coeffs
 
     def inverse_transform(self, _coeffs):
-        pywt.idwt2(coeffs=_coeffs, wavelet=self.wavelet)
+        return pywt.idwt2(coeffs=_coeffs, wavelet=self.wavelet)
+
+
+def check_valid_pixel(_x: int, _bit: int = 8) -> bool:
+    return (0 <= _x) and (_x <= ((2 ** _bit) - 1))
+
+
+def bgr2hex(_bgr: tuple) -> str:
+    b, g, r = _bgr
+    return ('#' + hex(r)[2:].zfill(2) + hex(g)[2:].zfill(2) + hex(b)[2:].zfill(2)).upper()
 
 
 def is_image_file(filename):
@@ -115,8 +124,8 @@ def imshow(_winname='Test image', _ndarr=None):
     cv2.imshow(winname=_winname, mat=_ndarr.astype(np.uint8))
 
 
-def plot(ndarr_img: np.ndarray, _offset: int = 12, _is_axis: bool = False, _is_bgr2rgb: bool = True) -> None:
-    img_channel, img_height, img_width = ndarr_img.shape
+def plot(_ndarr: np.ndarray, _offset: int = 12, _is_axis: bool = False, _is_bgr2rgb: bool = True) -> None:
+    img_channel, img_height, img_width = _ndarr.shape
     plt.figure(figsize=(_offset, img_height / img_width * _offset))
 
     if _is_axis is False:
@@ -124,26 +133,26 @@ def plot(ndarr_img: np.ndarray, _offset: int = 12, _is_axis: bool = False, _is_b
         plt.axis('off')
 
     if _is_bgr2rgb is True:
-        res = cv2.cvtColor(src=ndarr_img, code=cv2.COLOR_BGR2RGB)
+        res = cv2.cvtColor(src=_ndarr, code=cv2.COLOR_BGR2RGB)
     else:
-        res = ndarr_img
+        res = _ndarr
 
     plt.imshow(res) # Order of the channel: RGB
     plt.show()
 
 
-def clip(_ndarr, _min=None, _max=None, isround=True, _round_decimals=0):
+def clip(_ndarr: np.ndarray, _min: Optional[float] = None, _max: Optional[float] = None, _is_round: bool = True, _round_decimals: int = 0) -> np.ndarray:
     if _min is None:
         _min = _ndarr.min()
     if _max is None:
         _max = _ndarr.max()
-    if isround:
+    if _is_round is True:
         _ndarr = _ndarr.round(decimals=_round_decimals)
 
     return np.clip(a=_ndarr, a_min=_min, a_max=_max)
 
 
-def casting(_ndarr, _dtype=np.uint8):
+def casting(_ndarr: np.ndarray, _dtype: type = np.uint8) -> np.ndarray:
     """
     It is recommended to call clip function before calling the casting function.
     """

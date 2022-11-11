@@ -15,19 +15,18 @@ from colorlog import ColoredFormatter
 
 
 class Logger(object):
-    def __init__(self, _path_log, _mode='a', _fmt='[%(asctime)s] [%(levelname)s (%(process)s)]: %(message)s', _level=logging.DEBUG):
+    def __init__(self, _path_log, _mode='a', _fmt='[%(asctime)s] [%(levelname)s (%(process)s)] [%(name)s]: %(message)s', _level=logging.DEBUG):
         self.path_log = _path_log
         self.mode = _mode
         self.fmt = _fmt
         self.level = _level
         self.log_colors = {
-                'DEBUG': 'cyan',
-                'INFO': 'white,bold',
-                'INFOV': 'cyan,bold',
-                'WARNING': 'yellow',
-                'ERROR': 'red,bold',
-                'CRITICAL': 'red,bg_white',
-            }
+            'INFO': 'white',
+            'DEBUG': 'cyan',
+            'WARNING': 'yellow',
+            'ERROR': 'red,bold',
+            'CRITICAL': 'red,bg_white',
+        }
 
     def get_logger(self):
         self.logger = logging.getLogger(name=__name__)

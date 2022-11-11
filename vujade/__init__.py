@@ -9,7 +9,7 @@ Description: A method-wrapper for the package, vujade.
 
 
 __date__ = '221111'
-__version__ = '0.5.11'
+__version__ = '0.5.12'
 __all__ = ['main_encdec',
            'main_img2vid',
            'main_profiler',
@@ -43,6 +43,8 @@ __all__ = ['main_encdec',
            'vujade_profiler',
            'vujade_random',
            'vujade_resource',
+           'vujade_segmentation',
+           'vujade_slack',
            'vujade_str',
            'vujade_tensorboard',
            'vujade_text',
@@ -51,5 +53,5 @@ __all__ = ['main_encdec',
            'vujade_utils',
            'vujade_videocv',
            'vujade_xlsx',
-           'vujade_yaml'
+           'vujade_yaml',
            ]

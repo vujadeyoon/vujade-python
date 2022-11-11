@@ -18,6 +18,16 @@ def get_alphabets(_columns: Tuple[str, str]) -> tuple:
     return tuple(map(chr, tuple(range(ord(_columns[0]), ord(_columns[1]) + 1))))
 
 
+def upper(_str: str, _range: Optional[tuple] = None) -> str:
+    if _range is None:
+        res = _str.upper()
+    else:
+        idx_start, idx_end = _range
+        res = _str[idx_start:idx_end].upper() + _str[idx_end:]
+
+    return res
+
+
 def rstrip(_str: str, _chars: Optional[str] = None) -> str:
     return _str.rstrip(_chars)
 

@@ -13,6 +13,7 @@ import re
 import traceback
 import functools
 import time
+import datetime
 import statistics
 import numpy as np
 from vujade import vujade_resource as rsc_
@@ -42,9 +43,9 @@ class DEBUG(object):
         return False
 
 
-def measure_time(_iter: int = 1):
+def measure_time(_iter: int = 1, _warmup: int = 0):
     """
-    Usage: @prof_.measure_time(_iter=1)
+    Usage: @prof_.measure_time(_iter=1, _warmup=0)
            def test(_arg):
                pass
     Description: This is a decorator which can be used to measured the elapsed time for a callable function.
@@ -60,6 +61,9 @@ def measure_time(_iter: int = 1):
 
             result = None
             time_cumsum = 0.0
+            for _ in range(_warmup):
+                result = _func(*args, **kwargs)
+
             for _ in range(_iter):
                 time_start = time.time()
                 result = _func(*args, **kwargs)
@@ -272,8 +276,10 @@ class AverageMeterGPUMemory(rsc_.GPUMemory):
 
 
 class AverageMeterTime(object):
-    """This class is intended to profile the processing time"""
-    def __init__(self, _warmup: int = 0):
+    """
+    This class is intended to profile the processing time
+    """
+    def __init__(self, _warmup: int = 0) -> None:
         """
         :param int _warmup: A number of times for warming up.
         """
@@ -285,17 +291,17 @@ class AverageMeterTime(object):
         self.fps_avg = 0.0
         self.eps_val = 1e-9
 
-    def tic(self):
+    def tic(self) -> None:
         self.time_start = time.time()
 
-    def toc(self):
+    def toc(self) -> None:
         self.time_end = time.time()
         self.cnt_call += 1
 
         if self.warmup < self.cnt_call:
             self._update()
 
-    def _update(self):
+    def _update(self) -> None:
         self.time_len = (self.cnt_call - self.warmup)
         self.time_sum += (self.time_end - self.time_start)
         self.time_avg = (self.time_sum / self.time_len)
@@ -333,3 +339,33 @@ class AverageMeterValue(object):
         self.ndarr_vals_min = self.ndarr_vals.min(axis=0)
 
         self.cnt_call += 1
+
+
+class ETA(object):
+    def __init__(self, _len_epoch: int, _num_iters: int, _warmup: int = 0) -> None:
+        super(ETA, self).__init__()
+        self.len_epoch = _len_epoch
+        self.num_iters = _num_iters
+        self.warmup = _warmup
+        self.avgmeter_time_train = AverageMeterTime(_warmup=self.warmup)
+        self.avgmeter_time_valid = AverageMeterTime(_warmup=self.warmup)
+        self.time_avg = 0.0
+
+    def tic(self, _is_train: bool = True) -> None:
+        if _is_train is True:
+            self.avgmeter_time_train.tic()
+        else:
+            self.avgmeter_time_valid.tic()
+
+    def toc(self, _is_train: bool = True) -> None:
+        if _is_train is True:
+            self.avgmeter_time_train.toc()
+        else:
+            self.avgmeter_time_valid.tic()
+
+        self.time_avg = self.avgmeter_time_train.time_avg + (self.avgmeter_time_valid.time_avg / self.len_epoch)
+
+    def get(self, _num_iter_curr: int) -> str:
+        num_iter_remain = self.num_iters - _num_iter_curr
+
+        return str(datetime.timedelta(seconds=int(self.time_avg * num_iter_remain)))

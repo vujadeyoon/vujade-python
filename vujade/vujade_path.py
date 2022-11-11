@@ -41,8 +41,17 @@ class Path(object):
     def parent(self):
         return Path(_spath=str(self.path.parent))
 
+    def replace(self, _old: str, _new: str):
+        return Path(_spath=self.str.replace(_old, _new))
+
     def replace_ext(self, _new: str):
-        return Path(_spath=self.str.replace(self.ext, _new))
+        return self.replace(_old=self.ext, _new=_new)
+
+    def move(self, _spath_dst: str) -> None:
+        try:
+            shutil.move(src=self.str, dst=_spath_dst)
+        except Exception as e:
+            raise OSError('The file move is failed.: {}'.format(e))
 
     def copy(self, _spath_dst: str) -> None:
         try:
