@@ -16,8 +16,33 @@ import cv2.ximgproc as ximgproc
 import pywt
 import matplotlib.pyplot as plt
 from PIL import Image
-from typing import Optional, Set
+from typing import Optional, Set, Union
 from vujade import vujade_multiprocess as multiprocess_
+
+
+def get_color_code_bgr(_name_color: Optional[str] = None) -> Union[dict, tuple]:
+    dict_color_code = {
+        'red': (0, 0, 255),
+        'orange': (0, 50, 255),
+        'yellow': (0, 255, 255),
+        'green': (0, 255, 0),
+        'blue': (255, 0, 0),
+        'navy': (255, 5, 0),
+        'purple': (255, 0, 100),
+        'black': (0, 0, 0),
+        'white': (255, 255, 255),
+        'cyan': (255, 255, 0),
+        'magenta': (255, 0, 255)
+    }
+
+    if _name_color is None:
+        res = dict_color_code
+    else:
+        if _name_color not in dict_color_code.keys():
+            raise ValueError('The _name_color has not been supported yet.')
+        res = dict_color_code[_name_color]
+
+    return res
 
 
 def get_img_extension() -> Set[str]:
