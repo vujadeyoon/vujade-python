@@ -5,7 +5,9 @@
 1. [Notice](#notice)
 2. [How to install Vujade for Python](#how_to_install)
 3. [License](#license)
-4. [Todo](#todo)
+4. [How to remove ^M characters](#remove_^M)
+5. [Todo](#todo)
+6. [Reference](#ref)
 
 
 ## 1. Notice <a name="notice"></a>
@@ -29,5 +31,14 @@ $ cd ./vujade-python/ && bash ./bash_setup_vujade.sh && cd ../
 - Please note that the only providen vujadeyoon's own codes and wrapper-codes comply with the MIT license.
 
 
-## 4. Todo <a name="todo"></a>
+## 4. How to remove ^M characters <a name="remove_^M"></a>
+```bash
+sed 's/^M//g' ${PATH_FILE}
+```
+
+## 5. Todo <a name="todo"></a>
 - Instructions for usage will be updated in the future.
+
+
+## 6. Reference <a name="ref"></a>
+1. [remove ^M characters from file using sed](https://stackoverflow.com/questions/19406418/remove-m-characters-from-file-using-sed)

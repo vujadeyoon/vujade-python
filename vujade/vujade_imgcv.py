@@ -16,8 +16,10 @@ import cv2.ximgproc as ximgproc
 import pywt
 import matplotlib.pyplot as plt
 from PIL import Image
+from multiprocessing.queues import Queue
 from typing import Optional, Set, Union
 from vujade import vujade_multiprocess as multiprocess_
+from vujade import vujade_path as path_
 
 
 def get_color_code_bgr(_name_color: Optional[str] = None) -> Union[dict, tuple]:
@@ -50,51 +52,55 @@ def get_img_extension() -> Set[str]:
 
 
 class _ImWriterMP(multiprocess_.BaseMultiProcess):
-    def __init__(self, _num_proc=os.cpu_count()):
+    def __init__(self, _spath_frame_template: str, _num_proc: int = os.cpu_count(), _idx_format: str = '{:08d}') -> None:
         super(_ImWriterMP, self).__init__(_target_method=self._target_method, _num_proc=_num_proc)
+        self.path_frame_template = path_.Path(_spath_frame_template)
+        self.num_proc = _num_proc
+        self.idx_format = _idx_format
 
-    def _target_method(self, queue):
+        if self._is_valid_path_frame_template() is False:
+            raise ValueError('The given file extension of the _spath_frame_template, {} should be an image extension.'.format(self.path_frame_template.str))
+
+    def proc_enqueue(self, _list_frames: list, _list_idx_frames: list) -> None:
+        # Todo: To be coded.
+        for _idx, (_frame, _idx_frame) in enumerate(zip(_list_frames, _list_idx_frames)):
+            path_frame_with_index = self.path_frame_template.replace_ext('_{}{}'.format(self.idx_format, self.path_frame_template.ext).format(_idx_frame))
+            self.queue.put((path_frame_with_index.str, _frame))
+
+    def _target_method(self, _queue: Queue) -> None:
         # Todo: To be coded.
         while True:
-            if not queue.empty():
-                filename, ndarr = queue.get()
+            if not _queue.empty():
+                filename, ndarr = _queue.get()
                 if filename is None:
                     break
                 cv2.imwrite(filename=filename, img=ndarr)
 
-    def proc_enqueue(self, _list_img, _path_img, _list_postfix_num=None, _img_extension='.png'):
-        # Todo: To be coded.
-        if _list_postfix_num is None:
-            _list_postfix_num = [None] * len(_list_img)
+    def _is_valid_path_frame_template(self) -> bool:
+        if self.path_frame_template.ext in get_img_extension():
+            res = True
+        else:
+            res = False
 
-        for idx, (img, postfix_num) in enumerate(zip(_list_img, _list_postfix_num)):
-            if postfix_num is None:
-                path = '{}{}'.format(_path_img, _img_extension)
-            else:
-                path = _path_img.replace(_img_extension, '_{:08d}{}'.format(postfix_num, _img_extension))
-
-            self.queue.put((path, img))
+        return res
 
 
 class ImWriterMP(_ImWriterMP):
-    def __init__(self, _num_proc):
-        super(ImWriterMP, self).__init__(_num_proc=_num_proc)
+    def __init__(self, _spath_frame_template: str, _num_proc: int = os.cpu_count(), _idx_format: str = '{:08d}') -> None:
+        super(ImWriterMP, self).__init__(_spath_frame_template=_spath_frame_template, _num_proc=_num_proc, _idx_format=_idx_format)
         self._proc_setup()
 
-    def imwrite(self, _list_img, _path_img, _list_postfix_num, _img_extension='.png'):
-        self.proc_enqueue(_list_img=_list_img, _path_img=_path_img, _list_postfix_num=_list_postfix_num, _img_extension=_img_extension)
+    def imwrite(self, _frames: Union[list, np.ndarray], _idx_frame_start: int = 0) -> None:
+        if isinstance(_frames, list):
+            list_frames = _frames
+        else:
+            list_frames = list(_frames)
+        idx_frame_end = _idx_frame_start + len(list_frames) - 1
+        list_idx_frames = list(range(_idx_frame_start, idx_frame_end + 1))
+        self.proc_enqueue(_list_frames=list_frames, _list_idx_frames=list_idx_frames)
 
-    def close(self):
+    def close(self) -> None:
         self._proc_release()
-
-    def get_list_frames(self, _ndarr_frames, _idx_frame_curr):
-        list_frames = list(_ndarr_frames)
-
-        idx_frame_start = _idx_frame_curr - (len(list_frames) - 1)
-        idx_frame_end = idx_frame_start + len(list_frames)
-        list_idx_frames = list(range(idx_frame_start, idx_frame_end))
-
-        return list_frames, list_idx_frames
 
 
 class DWT2(object):

@@ -15,17 +15,17 @@ from multiprocessing import Queue
 
 
 class BaseMultiProcess(object):
-    def __init__(self, _target_method, _num_proc=os.cpu_count()):
+    def __init__(self, _target_method, _num_proc: int = os.cpu_count()) -> None:
         self.target_method = _target_method
         self.num_proc = _num_proc
 
-    def _proc_setup(self):
+    def _proc_setup(self) -> None:
         self.queue = Queue()
         self.process = [Process(target=self.target_method, args=(self.queue,)) for _ in range(self.num_proc)]
 
         for p in self.process: p.start()
 
-    def _proc_release(self):
+    def _proc_release(self) -> None:
         for _ in range(self.num_proc): self.queue.put((None, None)) # Todo: The number of parameters for queue.put() should be checked.
         while not self.queue.empty(): time.sleep(1)
         for p in self.process: p.join()
