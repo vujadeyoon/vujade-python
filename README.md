@@ -4,10 +4,11 @@
 ## Table of contents
 1. [Notice](#notice)
 2. [How to install Vujade for Python](#how_to_install)
-3. [License](#license)
+3. [How to add project path to the PYTHONPATH](#export_pythonpath)
 4. [How to remove ^M characters](#remove_^M)
-5. [Todo](#todo)
-6. [Reference](#ref)
+5. [License](#license)
+6. [Todo](#todo)
+7. [Reference](#ref)
 
 
 ## 1. Notice <a name="notice"></a>
@@ -25,20 +26,34 @@ $ cd ./vujade-python/ && bash ./bash_setup_vujade.sh && cd ../
 ```
 
 
-## 3. License <a name="license"></a>
+## 3. How to add project path to the PYTHONPATH  <a name="export_pythonpath"></a>
+If some errors occur for the vujade path in the project, I recommend you should add the project path to the PYTHONPATH.
+```bash
+$ export PYTHONPATH=$PYTHONPATH:$(pwd)
+```
+
+
+## 4. How to remove ^M characters <a name="remove_^M"></a>
+### 1. dos2unix
+  ```bash
+  $ dos2unix ${PATH_FILE}
+  ```
+
+### 2. Sed
+```bash
+$ sed 's/^M//g' ${PATH_FILE}
+```
+
+
+## 5. License <a name="license"></a>
 - I respect and follow the license of the used libraries including python3 packages.
 - The libraries including python3 packages are licensed by their licenses.
 - Please note that the only providen vujadeyoon's own codes and wrapper-codes comply with the MIT license.
 
 
-## 4. How to remove ^M characters <a name="remove_^M"></a>
-```bash
-sed 's/^M//g' ${PATH_FILE}
-```
-
-## 5. Todo <a name="todo"></a>
+## 6. Todo <a name="todo"></a>
 - Instructions for usage will be updated in the future.
 
 
-## 6. Reference <a name="ref"></a>
+## 7. Reference <a name="ref"></a>
 1. [remove ^M characters from file using sed](https://stackoverflow.com/questions/19406418/remove-m-characters-from-file-using-sed)
