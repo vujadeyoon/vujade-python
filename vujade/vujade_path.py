@@ -18,6 +18,7 @@ from typing import Union, List, Tuple, Optional
 
 class Path(object):
     def __init__(self, _spath: str):
+        super(Path, self).__init__()
         self.__spath = _spath
         self.name = self.path.stem
         self.ext = self.path.suffix
@@ -80,6 +81,9 @@ class Path(object):
         os.chdir(self.str)
 
     def count_number_files(self, _pattern: str = '*') -> int:
+        if self.path.is_file() is True:
+            raise ValueError('The given path should be a directory path.')
+
         return len(list(self.path.rglob('*')))
 
 

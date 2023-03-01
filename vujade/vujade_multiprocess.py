@@ -16,6 +16,7 @@ from multiprocessing import Queue
 
 class BaseMultiProcess(object):
     def __init__(self, _target_method, _num_proc: int = os.cpu_count()) -> None:
+        super(BaseMultiProcess, self).__init__()
         self.target_method = _target_method
         self.num_proc = _num_proc
 

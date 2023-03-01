@@ -34,6 +34,7 @@ class GPUStat(object):
         """
         Unit: MiB
         """
+        super(GPUStat, self).__init__()
         self.gpu_stats = gpustat.GPUStatCollection.new_query().jsonify()
         self._init()
         self._add_info()
@@ -146,6 +147,7 @@ class MainMemory(object):
         """
         Unit: MiB
         """
+        super(MainMemory, self).__init__()
         self.pid = _pid
         self.proc = utils_.getproc(_pid=self.pid)
 
@@ -179,6 +181,7 @@ class GPUMemory(object):
         """
         Unit: MiB
         """
+        super(GPUMemory, self).__init__()
         self.pid = _pid
         self.gpu_id = _gpu_id
         self._renew()
@@ -221,6 +224,7 @@ class LimitRunTime(object):
                         print('[{}]: {}'.format(cnt, self.pid))
                         cnt += 1
         """
+        super(LimitRunTime, self).__init__()
         self.limit_sec = int(math.floor(_limit_sec))
         self.pid = _pid
         soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
@@ -247,6 +251,7 @@ class LimitRunTimeFunc(object):
             limit_func.run(test, (10, 20))
             print('is_success: {}'.format(limit_func.is_success))
         """
+        super(LimitRunTimeFunc, self).__init__()
         self.limit_sec = int(math.floor(_limit_sec))
         self.is_success = None
 
@@ -291,6 +296,7 @@ class LimitRunTimeFuncDecorator(object):
                     print('elapsed time: {:.2f}, {}'.format(time.time() - time_start, _a + _b))
             test(_a=10, _b=20)
         """
+        super(LimitRunTimeFuncDecorator, self).__init__()
         self.limit_sec = int(math.floor(_limit_sec))
 
     def __call__(self, _func):

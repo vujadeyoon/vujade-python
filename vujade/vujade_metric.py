@@ -27,6 +27,7 @@ else:
 
 class BaseMetricMeter(object):
     def __init__(self):
+        super(BaseMetricMeter, self).__init__()
         self.initialized = False
         self.val = None
         self.avg = None

@@ -23,6 +23,7 @@ from vujade import vujade_utils as utils_
 
 class DEBUG(object):
     def __init__(self):
+        super(DEBUG, self).__init__()
         self.fileName = None
         self.lineNumber = None
         self.reTraceStack = re.compile('File \"(.+?)\", line (\d+?), .+')
@@ -82,6 +83,7 @@ def measure_time(_iter: int = 1, _warmup: int = 0):
 
 class IntegratedProfiler(object):
     def __init__(self, _pid: int = utils_.getpid(), _gpu_id: int = 0) -> None:
+        super(IntegratedProfiler, self).__init__()
         self.prof_time = TimeProfiler()
         self.prof_mem_main = MainMemoryProfiler(_pid=_pid)
         self.prof_mem_gpu = GPUMemoryProfiler(_pid=_pid, _gpu_id=_gpu_id)
@@ -174,7 +176,7 @@ class GPUMemoryProfiler(rsc_.GPUMemory, DEBUG):
 
 class TimeProfiler(DEBUG):
     def __init__(self) -> None:
-        DEBUG.__init__(self)
+        super(TimeProfiler, self).__init__()
         self.cnt_call = 0
         self.time_start = 0.0
         self.time_prev = 0.0
@@ -219,7 +221,7 @@ class TimeProfiler(DEBUG):
 
 class AverageMeterMainMemory(rsc_.MainMemory):
     def __init__(self, _pid=utils_.getpid(), _warmup=0):
-        rsc_.MainMemory.__init__(self, _pid=_pid)
+        super(AverageMeterMainMemory, self).__init__(_pid=_pid)
         self.warmup = _warmup
         self.cnt_call = 0
         self.mem_list = []
@@ -249,7 +251,7 @@ class AverageMeterMainMemory(rsc_.MainMemory):
 
 class AverageMeterGPUMemory(rsc_.GPUMemory):
     def __init__(self, _pid=utils_.getpid(), _gpu_id=0, _warmup=0):
-        rsc_.GPUMemory.__init__(self, _pid=_pid, _gpu_id=_gpu_id)
+        super(AverageMeterGPUMemory, self).__init__(_pid=_pid, _gpu_id=_gpu_id)
         self.warmup = _warmup
         self.cnt_call = 0
         self.mem_list = []
@@ -284,6 +286,7 @@ class AverageMeterTime(object):
         """
         :param int _warmup: A number of times for warming up.
         """
+        super(AverageMeterTime, self).__init__()
         self.warmup = _warmup
         self.cnt_call = 0
         self.time_len = 0
@@ -317,6 +320,7 @@ class AverageMeterTimePyTorchGPU(object):
         """
         :param int _warmup: A number of times for warming up.
         """
+        super(AverageMeterTimePyTorchGPU, self).__init__()
         self.warmup = _warmup
         self.cnt_call = 0
         self.time_len = 0
@@ -350,6 +354,7 @@ class AverageMeterTimePyTorchGPU(object):
 
 class AverageMeterValue(object):
     def __init__(self, **kwargs):
+        super(AverageMeterValue, self).__init__()
         self.cnt_call = 0
         self.keys = list(kwargs.keys())
         self.len = len(self.keys)

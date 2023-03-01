@@ -16,15 +16,17 @@ from vujade.vujade_debug import printf
 
 
 class Visualize(object):
-    def __init__(self,
-                 _color_code: Optional[list] = None,
-                 _alpha: Optional[float] = 0.6,
-                 _class_background: int = 0,
-                 _class_ignore: int = 255,
-                 _is_rgb2bgr: bool = False,
-                 _dtype: type = np.uint8,
-                 _bbox_color: tuple = (0, 0, 255),
-                 _bbox_thickness: int = 2) -> None:
+    def __init__(
+            self,
+            _color_code: Optional[list] = None,
+            _alpha: Optional[float] = 0.6,
+            _class_background: int = 0,
+            _class_ignore: int = 255,
+            _is_rgb2bgr: bool = False,
+            _dtype: type = np.uint8,
+            _bbox_color: tuple = (0, 0, 255),
+            _bbox_thickness: int = 2
+    ) -> None:
         super(Visualize, self).__init__()
         self.color_code = _color_code
         self.alpha = _alpha

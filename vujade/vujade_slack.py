@@ -10,6 +10,7 @@ from vujade.vujade_debug import printf
 
 class DEBUG(object):
     def __init__(self):
+        super(DEBUG, self).__init__()
         self.fileName = None
         self.lineNumber = None
         self.reTraceStack = re.compile('File \"(.+?)\", line (\d+?), .+')

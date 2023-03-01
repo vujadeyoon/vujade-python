@@ -31,6 +31,7 @@ class Compose(object):
     # >>>  ])
 
     def __init__(self, co_transforms):
+        super(Compose, self).__init__()
         self.co_transforms = co_transforms
 
     def __call__(self, inputs, target):
@@ -42,6 +43,7 @@ class Compose(object):
 
 class Normalizes(object):
     def __init__(self, _normalize_type='min_max', _min_max=(0.0, 255.0), _rescale_range=(-1.0, 1.0), _mean=(0.0, 0.0, 0.0), _std=(1.0, 1.0, 1.0)):
+        super(Normalizes, self).__init__()
         self.ndarr_normalize = NdarrNormalize(_normalize_type=_normalize_type, _min_max=_min_max, _rescale_range=_rescale_range, _mean=_mean, _std=_std)
         self.tensor_normalize = TensorNormalize(_normalize_type=_normalize_type, _min_max=_min_max, _rescale_range=_rescale_range, _mean=_mean, _std=_std)
 
@@ -60,6 +62,7 @@ class Normalizes(object):
 
 class ToTensors(object):
     def __init__(self):
+        super(ToTensors, self).__init__()
         self.totensor = ToTensor()
 
     def __call__(self, _inputs, _target):
@@ -70,6 +73,7 @@ class ToTensors(object):
 
 class ToTensors_with_Normalize(object):
     def __init__(self, _normalize_type='min_max', _min_max=([0.0, 255.0], [0.0, 255.0]), _rescale_range=([-1.0, 1.0], [-1.0, 1.0]), _mean=([0.0, 0.0, 0.0], [0.0, 0.0, 0.0]), _std=([1.0, 1.0, 1.0], [1.0, 1.0, 1.0])):
+        super(ToTensors_with_Normalize, self).__init__()
         self.normalize_type = _normalize_type
         self.min_max = _min_max
         self.rescale_range = _rescale_range
@@ -89,6 +93,7 @@ class ToTensors_with_Normalize(object):
 
 class Resize(object):
     def __init__(self, _size, _interp=cv2.INTER_CUBIC):
+        super(Resize, self).__init__()
         self.output_sz = _size
         self.interp = _interp
 
@@ -114,6 +119,7 @@ class RandomHorizontalFlip(object):
     Randomly horizontally flips the given ndarray with a probability of 0.5
     """
     def __init__(self, _prob=0.5):
+        super(RandomHorizontalFlip, self).__init__()
         self.prob = _prob
 
     def __call__(self, _inputs, _target):
@@ -129,6 +135,7 @@ class RandomVerticalFlip(object):
     Randomly horizontally flips the given ndarray with a probability of 0.5
     """
     def __init__(self, _prob=0.5):
+        super(RandomVerticalFlip, self).__init__()
         self.prob = _prob
 
     def __call__(self, _inputs, _target):
@@ -144,6 +151,7 @@ class RandomRotate90(object):
     Randomly rotate the given ndarray with 90 degree num_rot-times.
     """
     def __init__(self, _prob=0.5):
+        super(RandomRotate90, self).__init__()
         self.prob = _prob
 
     def __call__(self, _inputs, _target):
@@ -168,6 +176,7 @@ class RandomRotate(object):
            ])
     """
     def __init__(self, _degree=(-30, 30), _prob=0.5):
+        super(RandomRotate, self).__init__()
         self.degree_min = _degree[0]
         self.degree_max = _degree[1]
         self.prob = _prob
@@ -187,6 +196,7 @@ class RandomShearX(object):
     The imgaug-python-package based random shear transform with x-axis
     """
     def __init__(self, _shear=(-30, 30), _prob=0.5):
+        super(RandomShearX, self).__init__()
         self.shear_min = _shear[0]
         self.shear_max = _shear[1]
         self.prob = _prob
@@ -206,6 +216,7 @@ class RandomShearY(object):
     The imgaug-python-package based random shear transform with y-axis
     """
     def __init__(self, _shear=(-30, 30), _prob=0.5):
+        super(RandomShearY, self).__init__()
         self.shear_min = _shear[0]
         self.shear_max = _shear[1]
         self.prob = _prob
@@ -225,6 +236,7 @@ class RandomPerspective(object):
     The imgaug-python-package based random perspective transform
     """
     def __init__(self, _scale=(0.0, 0.6), _prob=0.5):
+        super(RandomPerspective, self).__init__()
         self.scale_min = _scale[0]
         self.scale_max = _scale[1]
         self.prob = _prob
@@ -244,6 +256,7 @@ class RandomElastic(object):
     The imgaug-python-package based random elastic transform
     """
     def __init__(self, _alpha=(0.0, 40.0), _sigma=(4.0, 8.0), _prob=0.5):
+        super(RandomElastic, self).__init__()
         self.alpha_min = _alpha[0]
         self.alpha_max = _alpha[1]
         self.sigma_min = _sigma[0]
@@ -266,6 +279,7 @@ class RandomSpatialShuffle(object):
     The novel image augmentation that is called RandomSpatialShuffle
     """
     def __init__(self, _prob=0.5):
+        super(RandomSpatialShuffle, self).__init__()
         self.prob = _prob
 
     def __call__(self, _inputs, _target):
@@ -297,6 +311,7 @@ class RandomSpatialShuffle(object):
 
 class RandomCutMoireBackward(object):
     def __init__(self, _size=(32, 32), _prob=0.5):
+        super(RandomCutMoireBackward, self).__init__()
         self.height_new = _size[0]
         self.width_new = _size[1]
         self.prob = _prob
@@ -333,6 +348,7 @@ class GuidedFilterForward(object):
            ])
     """
     def __init__(self, _radius=5, _eps=None, _dDepth=-1, _scale=0.01, _option='layer_detail', _apply_target=False):
+        super(GuidedFilterForward, self).__init__()
         self.radius = _radius
         self.eps = _eps
         self.dDepth = _dDepth
@@ -361,6 +377,7 @@ class GuidedFilterForward(object):
 
 class NdarrNormalize(object):
     def __init__(self, _normalize_type='min_max', _min_max=(0.0, 255.0), _rescale_range=(-1.0, 1.0), _mean=(0.0, 0.0, 0.0), _std=(1.0, 1.0, 1.0)):
+        super(NdarrNormalize, self).__init__()
         self.normalize_type = _normalize_type
         self.min = _min_max[0]
         self.max = _min_max[1]
@@ -403,6 +420,7 @@ class NdarrNormalize(object):
 
 class NdarrDenormalize(object):
     def __init__(self, _normalize_type='min_max', _min_max=(0.0, 255.0), _rescale_range=(-1.0, 1.0), _mean=(0.0, 0.0, 0.0), _std=(1.0, 1.0, 1.0)):
+        super(NdarrDenormalize, self).__init__()
         self.normalize_type = _normalize_type
         self.min = _min_max[0]
         self.max = _min_max[1]
@@ -444,6 +462,7 @@ class NdarrDenormalize(object):
 
 class TensorNormalize(object):
     def __init__(self, _normalize_type='min_max', _min_max=(0.0, 255.0), _rescale_range=(-1.0, 1.0), _mean=(0.0, 0.0, 0.0), _std=(1.0, 1.0, 1.0)):
+        super(TensorNormalize, self).__init__()
         self.normalize_type = _normalize_type
         self.min = _min_max[0]
         self.max = _min_max[1]
@@ -485,6 +504,7 @@ class TensorNormalize(object):
 
 class TensorDenormalize(object):
     def __init__(self, _normalize_type='min_max', _min_max=(0.0, 255.0), _rescale_range=(-1.0, 1.0), _mean=(0.0, 0.0, 0.0), _std=(1.0, 1.0, 1.0)):
+        super(TensorDenormalize, self).__init__()
         self.normalize_type = _normalize_type
         self.min = _min_max[0]
         self.max = _min_max[1]

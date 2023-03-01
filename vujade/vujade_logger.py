@@ -16,6 +16,7 @@ from colorlog import ColoredFormatter
 
 class Logger(object):
     def __init__(self, _path_log, _mode='a', _fmt='[%(asctime)s] [%(levelname)s (%(process)s)] [%(name)s]: %(message)s', _level=logging.DEBUG):
+        super(Logger, self).__init__()
         self.path_log = _path_log
         self.mode = _mode
         self.fmt = _fmt
@@ -58,6 +59,7 @@ class Logger(object):
 
 class Print2Logger(object):
     def __init__(self, _path_log, _mode='a'):
+        super(Print2Logger, self).__init__()
         self.path_log = _path_log
         self.mode = _mode
         self._run()

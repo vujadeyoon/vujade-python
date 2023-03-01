@@ -11,8 +11,9 @@ Description: A module for tensorboard
 from torch.utils.tensorboard import SummaryWriter
 
 
-class tensorboard_logger(object):
+class TensorBoardLogger(object):
     def __init__(self, _log_dir, _opt=None):
+        super(TensorBoardLogger, self).__init__()
         self.writer = SummaryWriter(log_dir=_log_dir)
         if _opt is not None:
             self.add_text(_tag='opt', _text_string=str(_opt), _step=None)

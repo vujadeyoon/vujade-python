@@ -8,12 +8,21 @@ Description: A module for cryptography
 """
 
 
+import os
+import argparse
+import zlib
 import pickle
-from typing import Any, Optional
+from typing import Union, Optional, Any
 from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.backends import default_backend
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+from vujade import vujade_bytes as bytes_
 from vujade import vujade_path as path_
+from vujade import vujade_str as str_
+from vujade.vujade_debug import printf
 
 
 class SymmetricCryptography(object):
@@ -295,6 +304,7 @@ class AsymmetricSignature(object):
 
 class EncryptDecryptFiles(object):
     def __init__(self, _spath_root_encrypt: str = './encrypt', _spath_root_decrypt: str = './decrypt', _spath_root_key: str = './key', _is_to_bytes: bool = False) -> None:
+        super(EncryptDecryptFiles, self).__init__()
         self.path_root_encrypt = path_.Path(_spath_root_encrypt)
         self.path_root_decrypt = path_.Path(_spath_root_decrypt)
         self.path_root_key = path_.Path(_spath_root_key)
@@ -376,3 +386,80 @@ class EncryptDecryptFiles(object):
 
     def __make_data_for_symmetriccryptography(self, _data_encrypt_content: bytes) -> dict:
         return {'encrypt': _data_encrypt_content, 'is_to_bytes': self.is_to_bytes}
+
+
+class SymmetricCryptographyBytesBytearray(object):
+    magic_bytes = b'aa1b2848-c32f-4c34-b80c-cfcdd39b56a3'
+
+    @classmethod
+    def encrypt(cls, _bytes_bytearr: Union[bytes, bytearray], _key: bytes) -> bytes:
+        # Encrypt the bytes or bytearray using AES-CBC with PKCS7 padding
+        cipher = Cipher(algorithms.AES(_key), modes.CBC(cls.magic_bytes[:16]), backend=default_backend())
+        encryptor = cipher.encryptor()
+        padder = padding.PKCS7(algorithms.AES.block_size).padder()
+        padded_bytes = padder.update(_bytes_bytearr) + padder.finalize()
+        encrypted_bytes = encryptor.update(padded_bytes) + encryptor.finalize()
+
+        return encrypted_bytes
+
+    @classmethod
+    def decrypt(cls, _bytes_enc: bytes, _key: bytes) -> bytes:
+        # Decrypt the encrypted bytes using AES-CBC with PKCS7 padding
+        cipher = Cipher(algorithms.AES(_key), modes.CBC(cls.magic_bytes[:16]), backend=default_backend())
+        decryptor = cipher.decryptor()
+        unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
+        decrypted_padded_bytes = decryptor.update(_bytes_enc) + decryptor.finalize()
+        decrypted_bytearr = unpadder.update(decrypted_padded_bytes) + unpadder.finalize()
+
+        return decrypted_bytearr
+
+    @classmethod
+    def generate_key(cls) -> bytes:
+        # Generate a random 256-bit encryption and decryption key
+        return os.urandom(32)
+
+
+class MainSymmetricCryptographyBytesBytearray(object):
+    @classmethod
+    def run(cls) -> None:
+        args = cls._get_args()
+
+        path_file_src = path_.Path(args.path_file_src)
+
+        if args.mode == 'enc':
+            path_file_dst = path_file_src.replace_ext('.scb')
+        elif args.mode == 'dec':
+            if path_file_src.ext == '.scb':
+                if args.path_file_dst is None:
+                    raise ValueError('The path_file_dst should be assigned in the dec mode.')
+                else:
+                    path_file_dst =path_.Path(args.path_file_dst)
+            else:
+                raise ValueError("The extension of the path_file_src should be '.scb' in the dec mode.")
+        else:
+            raise ValueError('The given args.mode has not been supported.')
+
+        if args.mode == 'enc':
+            bytes_ori = bytes_.Bytes.read(_spath_file=path_file_src.str)
+            bytes_enc = SymmetricCryptographyBytesBytearray.encrypt(_bytes_bytearr=bytes_ori, _key=args.key)
+            if args.is_compress is True:
+                bytes_enc = zlib.compress(bytes_enc)
+            bytes_.Bytes.write(_spath_file=path_file_dst.str, _bytes=bytes_enc)
+        else:
+            bytes_enc = bytes_.Bytes.read(_spath_file=path_file_src.str)
+            if args.is_compress is True:
+                bytes_enc = zlib.decompress(bytes_enc)
+            bytes_dec = SymmetricCryptographyBytesBytearray.decrypt(_bytes_enc=bytes_enc, _key=args.key)
+            bytes_.Bytes.write(_spath_file=path_file_dst.str, _bytes=bytes_dec)
+
+    @staticmethod
+    def _get_args() -> argparse.Namespace:
+        parser = argparse.ArgumentParser(description='Main function for calling SymmetricCryptographyBytesBytearray.')
+        parser.add_argument('--mode', type=str, default='enc', help='i) enc; ii) dec')
+        parser.add_argument('--path_file_src', type=str, default='./_bks/data/img_test.png')
+        parser.add_argument('--path_file_dst', type=str, default=None)
+        parser.add_argument('--is_compress', type=str_.str2bool, default=True)
+        parser.add_argument('--key', type=bytes, required=True, help='SymmetricCryptographyBytesBytearray.generate_key()')
+        args = parser.parse_args()
+
+        return args

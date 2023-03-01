@@ -292,6 +292,7 @@ class Guided_Filter(object):
         :param _dDepth: Default value: -1
         :param _scale:  It is used to get _eps value.
         """
+        super(Guided_Filter, self).__init__()
         self.radius = _radius
         self.eps = _eps
         self.dDepth = _dDepth

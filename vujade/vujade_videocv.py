@@ -38,6 +38,7 @@ def encode_vid2vid(_spath_video_src: str, _spath_video_dst: str) -> bool:
 
 class VideoReaderFFmpeg(object):
     def __init__(self, _spath_video: str, _channel: int = 3, _pix_fmt: str = 'bgr24'):
+        super(VideoReaderFFmpeg, self).__init__()
         self.spath_video = _spath_video
         video_info = self._get_info()
         self.height = video_info['height']
@@ -91,6 +92,7 @@ class VideoReaderFFmpeg(object):
 
 class VideoWriterFFmpeg(object):
     def __init__(self, _spath_video: str, _size: tuple = (1080, 1920), _fps: float = 30.0, _qp_val: int = 0, _pix_fmt: str = 'bgr24', _codec: str = 'libx264'):
+        super(VideoWriterFFmpeg, self).__init__()
         if _spath_video is None:
             raise ValueError('The parameter, _spath_video, should be assigned.')
 
@@ -122,6 +124,7 @@ class VideoWriterFFmpeg(object):
 
 class VideoReaderCV(object):
     def __init__(self, _spath_video: str, _sec_start: int = None, _sec_end: int = None) -> None:
+        super(VideoReaderCV, self).__init__()
         if _spath_video is None:
             raise ValueError('The parameter, _spath_video, should be assigned.')
 
@@ -331,6 +334,7 @@ class VideoReaderCV(object):
 
 class VideoWriterCV(object):
     def __init__(self, _spath_video: str, _size: tuple = (1080, 1920), _fps: float = 30.0, _fourcc: int = cv2.VideoWriter_fourcc(*'MJPG')):
+        super(VideoWriterCV, self).__init__()
         if _spath_video is None:
             raise ValueError('The variable, _spath_video, should be assigned.')
 
@@ -360,6 +364,7 @@ class SceneChangeDetectorFFmpeg(object):
         ii) grep showinfo ffout.log | grep pts_time:[0-9.]* -o | grep [0-9.]* -o > ffout_scene_change_detection.log
     """
     def __init__(self, _threshold: float = 0.4):
+        super(SceneChangeDetectorFFmpeg, self).__init__()
         self.threshold = _threshold
         self.offset = 9
 
@@ -401,6 +406,7 @@ class SceneChangeDetectorFFmpegInteractiveProcessing(object):
         :param float _threshold: A thershold value to determine wheter the scene change occurs
         :param bool _is_cython: A boolean variable to decide whether to use cython
         """
+        super(SceneChangeDetectorFFmpegInteractiveProcessing, self).__init__()
         if _dsize is None:
             raise ValueError('The argument should be tuple, not None.')
 
@@ -534,6 +540,7 @@ class SceneChangeDetectorFFmpegBatchProcessing(object):
         :param bool _unit_computation: A computation unit
         :param bool _is_cython: A boolean variable to decide whether to use cython
         """
+        super(SceneChangeDetectorFFmpegBatchProcessing, self).__init__()
         if _dsize is None:
             raise ValueError('The argument should be tuple, not None.')
 
