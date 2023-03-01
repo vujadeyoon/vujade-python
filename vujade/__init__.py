@@ -9,7 +9,7 @@ Description: A method-wrapper for the package, vujade.
 
 
 __date__ = '230301'
-__version__ = '0.5.15'
+__version__ = '0.5.16'
 __all__ = [
     'main_encdec',
     'main_img2vid',
@@ -25,6 +25,7 @@ __all__ = [
     'vujade_debug',
     'vujade_dnn',
     'vujade_download',
+    'vujade_erase',
     'vujade_flops_counter',
     'vujade_google',
     'vujade_handler',
