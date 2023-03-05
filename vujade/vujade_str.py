@@ -14,6 +14,17 @@ import json
 from typing import Optional, Tuple, Union
 
 
+def str2num(_str_num: str, _func_cast_num: type = int) -> Union[int, float]:
+    if (_func_cast_num is not int) and (_func_cast_num is not float):
+        raise ValueError('The _func_num should be int or float.')
+    try:
+        res = _func_cast_num(_str_num)
+    except ValueError as e:
+        raise ValueError("The _str_num, '{}' cannot be converted to number.".format(_str_num))
+
+    return res
+
+
 def get_alphabets(_columns: Tuple[str, str]) -> tuple:
     return tuple(map(chr, tuple(range(ord(_columns[0]), ord(_columns[1]) + 1))))
 

@@ -11,6 +11,7 @@ Acknowledgement: This implementation is highly inspired from Berkeley CS188.
 
 
 import sys
+import getpass
 import inspect
 import heapq
 import random
@@ -89,6 +90,10 @@ def deprecated(_func):
         raise Exception
         # return _func(*args, **kwargs)
     return _wrapper
+
+
+def get_username() -> str:
+    return getpass.getuser()
 
 
 def find_substr(_str_src: str, _str_sub: str) -> list:

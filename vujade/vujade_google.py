@@ -3,8 +3,8 @@ Dveloper: vujadeyoon
 Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
-Title: main_encdec.py
-Description: A main python script for Google Cloud API.
+Title: vujade_google.py
+Description: A module for Google Cloud API.
 
 Reference:
     i)   https://developers.google.com/sheets/api
@@ -113,8 +113,6 @@ class GoogleSheet3DMM(object):
         for _idx, (_column, (_key, _val)) in enumerate(zip(idx_column, _data_facial_alignment.items())):
             gs_3dmm.ws.write_value('{}'.format(_column + str(self._get_idx_write())), str(_val))
         self._update_idx_write()
-
-
 
 
 if __name__=='__main__':

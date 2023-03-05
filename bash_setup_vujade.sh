@@ -32,5 +32,7 @@ cd ${path_cython_scd_inter} && python3 setup.py build_ext --inplace
 cd ${path_cython_scd_batch} && python3 setup.py build_ext --inplace
 #
 #
-mv ${path_root}/vujade-python/vujade ${path_root}/
+mv ${path_root}/vujade-python/script/ ${path_root}/
+mv ${path_root}/vujade-python/vujade/ ${path_root}/
+mv ${path_root}/vujade-python/main.py ${path_root}/
 rm -rf ${path_root}/vujade-python

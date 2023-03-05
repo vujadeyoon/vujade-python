@@ -17,6 +17,10 @@ from collections import deque
 from vujade.vujade_debug import printf
 
 
+def sorted_set(_list: list) -> list:
+    return list(sorted(set(_list), key=_list.index))
+
+
 def remove_empty_element(_list: list) -> list:
     return [x for x in _list if x]
 
