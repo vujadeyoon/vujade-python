@@ -11,23 +11,17 @@ Description: A module for logger
 import os
 import sys
 import re
-import builtins
 import traceback
 import warnings
 import logging
 import logging.handlers
-import vujade
 from typing import Optional
 from datetime import datetime
 from pytz import timezone
 from colorlog import ColoredFormatter
 from vujade import vujade_path as path_
-from vujade import vujade_warnings as warnings_
-
-
-builtin_func = dict()
-for _idx, _name_builtin in enumerate(vujade.env_var['log']['builtins']):
-    builtin_func[_name_builtin] = getattr(builtins, _name_builtin)
+from vujade import vujade_str as str_
+from vujade import vujade_utils as utils_
 
 
 class DEBUG(object):
@@ -53,48 +47,39 @@ class DEBUG(object):
         return False
 
 
-def print_with_log(*args, **kwargs) -> None:
-    """
-    Usage:
-        from vujade.vujade_logger import print_with_log as print
-        print('Test')
-        print('Test', _tag='Tag', _type='i')
-    """
-    types = {'d', 'i', 'w', 'e', 'c'}
-
-    if ('_tag' in kwargs.keys()) and (isinstance(kwargs['_tag'], str) is True):
-        log_tag = kwargs['_tag']
-    else:
-        log_tag = None
-
-    if ('_type' in kwargs.keys()) and (isinstance(kwargs['_type'], str) is True) and (kwargs['_type'] in types):
-        log_type = kwargs['_type']
-    else:
-        log_type = 'i'
-
-    debug_info = DEBUG()
-    debug_info.get_file_line()
-
-    log_str = ''
-    for _idx, _arg in enumerate(args):
-        log_str += '{} '.format(_arg)
-    log_str = log_str.rstrip(' ')
-
-    if (vujade.env_var['log']['path'] is not None) and (debug_info.fileName == 'vujade_debug.py'):
-        info_trace = log_str
-    else:
-        info_trace = '[{}:{}] '.format(debug_info.fileName, debug_info.lineNumber) + log_str
-
-    if vujade.env_var['log']['path'] is not None:
-        attr = getattr(SimpleLog, log_type)
-        attr(_tag=log_tag, _message=info_trace)
-    else:
-        attr = getattr(builtins, 'print')
-        attr(log_str)
-
-
 class _BaseSimpleLog(object):
     logger = logging.getLogger(__name__)
+
+    @staticmethod
+    def get_spath_log() -> Optional[str]:
+        path_log = path_.Path(utils_.get_env_var(_name_var='PATH_LOG', _default=''))
+
+        if path_log.ext in {'.log', '.txt'}:
+            res = '{}'.format(path_log)
+        else:
+            res = None
+
+        return res
+
+    @staticmethod
+    def get_level_log() -> int:
+        level_log = utils_.get_env_var(_name_var='LEVEL_LOG', _default='DEBUG')
+
+        try:
+            res = getattr(logging, level_log)
+        except Exception as e:
+            res = getattr(logging, 'DEBUG')
+
+        return res
+
+    @staticmethod
+    def get_is_traceback_print_stack() -> bool:
+        try:
+            res = str_.str2bool(utils_.get_env_var(_name_var='IS_TRACEBACK_PRINT_STACK', _default='False'))
+        except Exception as e:
+            res = False
+
+        return res
 
     @staticmethod
     def _timetz(*args):
@@ -104,28 +89,32 @@ class _BaseSimpleLog(object):
     @classmethod
     def _warning_handler(cls, _message, _category, _filename, _lineno, _file=None, _line=None) -> None:
         info_trace = f'[{_filename}:{_lineno}] {_category.__name__}: {_message}'
-        if vujade.env_var['log']['is_traceback_print_stack'] is True:
+        if cls.get_is_traceback_print_stack() is True:
             traceback.print_stack()
 
         cls.logger.warning(info_trace)
 
-    @staticmethod
-    def _update_builtins() -> None:
-        for _idx, _name_builtin in enumerate(vujade.env_var['log']['builtins']):
-            setattr(builtins, _name_builtin, print_with_log)
-
-    @staticmethod
-    def _restore_builtins() -> None:
-        for _idx, _name_builtin in enumerate(vujade.env_var['log']['builtins']):
-            setattr(builtins, _name_builtin, builtin_func[_name_builtin])
-
 
 class SimpleLog(object):
-    if vujade.env_var['log']['path'] is not None:
-        path_log = path_.Path(vujade.env_var['log']['path'])
+    """
+    Usage:
+        export PATH_LOG='./log/debug.log'
+        from vujade import vujade_logger as loggger_
+        loggger_.SimpleLog.d(_tag='TAG', _message='MESSAGE')
+    """
+
+    var_log = {
+        'path': _BaseSimpleLog.get_spath_log(),
+        'level': _BaseSimpleLog.get_level_log(),
+    }
+
+    debug_info = DEBUG()
+
+    if var_log['path'] is not None:
+        path_log = path_.Path(var_log['path'])
         path_log.parent.path.mkdir(mode=0o775, parents=True, exist_ok=True)
 
-        _BaseSimpleLog.logger.setLevel(vujade.env_var['log']['level'])
+        _BaseSimpleLog.logger.setLevel(var_log['level'])
 
         logging.Formatter.converter = _BaseSimpleLog._timetz
         fmt = '%(log_color)s[%(asctime)s] [%(levelname)s (%(process)s)]: %(message)s'
@@ -140,44 +129,54 @@ class SimpleLog(object):
         formatter = ColoredFormatter(fmt=fmt, log_colors=log_colors, no_color=True)
 
         streamHandler = logging.StreamHandler()
-        streamHandler.setLevel(vujade.env_var['log']['level'])
+        streamHandler.setLevel(var_log['level'])
         streamHandler.setFormatter(formatter_color)
         _BaseSimpleLog.logger.addHandler(streamHandler)
 
-        if vujade.env_var['verbose']['level'] in {2, 3}:
-            fileHandler = logging.FileHandler(path_log.str)
-            fileHandler.setLevel(vujade.env_var['log']['level'])
-            fileHandler.setFormatter(formatter)
-            _BaseSimpleLog.logger.addHandler(fileHandler)
+        fileHandler = logging.FileHandler(path_log.str)
+        fileHandler.setLevel(var_log['level'])
+        fileHandler.setFormatter(formatter)
+        _BaseSimpleLog.logger.addHandler(fileHandler)
 
         warnings.showwarning = _BaseSimpleLog._warning_handler
 
-        if vujade.env_var['log']['builtins']:
-            _BaseSimpleLog._update_builtins()
+    @classmethod
+    def _check_valid_path_log(cls):
+        if cls.var_log['path'] is None:
+            raise ValueError('The environment variable, PATH_LOG (i.e. *.log and *.txt) should be assigned correctly in advance in order to use the class, SimpleLog.')
 
-    def __del__(self):
-        if vujade.env_var['log']['builtins']:
-            _BaseSimpleLog._restore_builtins()
+    @classmethod
+    def _get_message(cls, _tag: Optional[str], _message: str) -> str:
+        cls.debug_info.get_file_line()
+        res = '[{}:{}] '.format(cls.debug_info.fileName, cls.debug_info.lineNumber)
+        res += '{}'.format(_message) if _tag is None else '[{}] {}'.format(_tag, _message)
+
+        return res
 
     @classmethod
     def d(cls, _tag: Optional[str], _message: str) -> None:
-        _BaseSimpleLog.logger.debug('{}'.format(_message) if _tag is None else '[{}] {}'.format(_tag, _message))
+        cls._check_valid_path_log()
+        _BaseSimpleLog.logger.debug(cls._get_message(_tag=_tag, _message=_message))
 
     @classmethod
     def i(cls, _tag: Optional[str], _message: str) -> None:
-        _BaseSimpleLog.logger.info('{}'.format(_message) if _tag is None else '[{}] {}'.format(_tag, _message))
+        cls._check_valid_path_log()
+        _BaseSimpleLog.logger.info(cls._get_message(_tag=_tag, _message=_message))
 
     @classmethod
     def w(cls, _tag: Optional[str], _message: str) -> None:
-        _BaseSimpleLog.logger.warning('{}'.format(_message) if _tag is None else '[{}] {}'.format(_tag, _message))
+        cls._check_valid_path_log()
+        _BaseSimpleLog.logger.warning(cls._get_message(_tag=_tag, _message=_message))
 
     @classmethod
     def e(cls, _tag: Optional[str], _message: str) -> None:
-        _BaseSimpleLog.logger.error('{}'.format(_message) if _tag is None else '[{}] {}'.format(_tag, _message))
+        cls._check_valid_path_log()
+        _BaseSimpleLog.logger.error(cls._get_message(_tag=_tag, _message=_message))
 
     @classmethod
     def c(cls, _tag: Optional[str], _message: str) -> None:
-        _BaseSimpleLog.logger.critical('{}'.format(_message) if _tag is None else '[{}] {}'.format(_tag, _message))
+        cls._check_valid_path_log()
+        _BaseSimpleLog.logger.critical(cls._get_message(_tag=_tag, _message=_message))
 
 
 class Logger(object):

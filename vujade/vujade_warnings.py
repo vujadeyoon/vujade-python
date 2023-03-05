@@ -13,7 +13,7 @@ Reference:
 
 
 import warnings
-from typing import Iterable, Type, Union
+from typing import Iterable, Tuple, Type
 from vujade.vujade_debug import printf
 
 
@@ -25,8 +25,12 @@ class Warnings(object):
         return warnings.filters
 
     @classmethod
-    def filterwarnings_modules(cls, _modules: Iterable[Iterable[Union[str, str, int]]]) -> None:
-        # Usage: modules_warnings = (('ignore', 'torch.nn.functional', 718), ); warnings_.Warnings.filterwarnings_modules(_modules=modules_warnings)
+    def filterwarnings_modules(cls, _modules: Iterable[Tuple[str, str, int]]) -> None:
+        """
+        Usage:
+            modules_warnings = (('ignore', 'torch.nn.functional', 718), )
+            warnings_.Warnings.filterwarnings_modules(_modules=modules_warnings)
+        """
         for _idx, (_action, _module, _lineno) in enumerate(_modules):
             assert isinstance(_action, str)
             assert isinstance(_module, str)
@@ -35,9 +39,12 @@ class Warnings(object):
 
     @classmethod
     def filterwarnings(cls, _action: str = 'ignore', _message: str = '', _category: Type[Warning] = Warning, _module: str = '', _lineno: int = 0, _append: bool = False) -> None:
-        # Usage:
-        #     i)  warnings_.Warnings.filterwarnings(_action='ignore', _message='Custom user warning message')
-        #     ii) warnings_.Warnings.filterwarnings(_action='ignore', _module='torch.nn.functional', _lineno=718)
+        """
+        Usage:
+            i)  warnings_.Warnings.filterwarnings(_action='ignore', _message='Custom user warning message')
+            ii) warnings_.Warnings.filterwarnings(_action='ignore', _module='torch.nn.functional', _lineno=718)
+        """
+
         cls.__check_action(_action=_action)
 
         warnings.filterwarnings(
@@ -74,3 +81,8 @@ class Warnings(object):
     def __check_action(cls, _action: str):
         if _action not in cls.actions:
             raise ValueError('The _action, {} has not supported yet.'.format(_action))
+
+
+if __name__=='__main__':
+    modules_warnings = (('ignore', 'torch.nn.functional', 718), )
+    Warnings.filterwarnings_modules(_modules=modules_warnings)

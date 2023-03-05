@@ -11,7 +11,6 @@ Description: A module for debug
 import os
 import re
 import traceback
-import vujade
 
 
 class DEBUG(object):
@@ -39,9 +38,6 @@ class DEBUG(object):
 
 
 def printf(*_args, **_kwargs) -> str:
-    if vujade.env_var['verbose']['level'] in {'0', '1'}:
-        _kwargs['_is_print'] = False
-
     debug_info = DEBUG()
     debug_info.get_file_line()
 

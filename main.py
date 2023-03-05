@@ -1,12 +1,11 @@
 import warnings
-import vujade.vujade_logger
 from vujade.vujade_debug import printf
 
 
 if __name__=='__main__':
-    print('[print] Hello world.')
-    warnings.warn('[warn] Hello world.')
-    input('[input] Hello world.')
-    printf('[printf] Hello world.', _is_pause=True)
-    printf('[printf] Hello world.', _is_pause=False)
+    print('[1/5] [print] Hello world.')
+    warnings.warn('[2/5] [warn] Hello world.')
+    input('[3/5] [input] Hello world.')
+    printf('[4/5] [printf] Hello world.', _is_pause=True)
+    printf('[5/5] [printf] Hello world.', _is_pause=False)
 

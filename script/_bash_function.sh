@@ -101,18 +101,25 @@ function echom() {
 }
 #
 #
-function run_python3() {
+function python3m() {
   local path_python3="${1}"
+  local command_python3="CUDA_VISIBLE_DEVICES=0 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1"
 
   if [[ ! -v LEVEL_VERBOSE || ${LEVEL_VERBOSE} -eq 3 ]]; then
-    python3 ${path_python3}
+    command_python3+=" python3 ${path_python3} 2>&1"
   elif [[ ${LEVEL_VERBOSE} -eq 0 || ${LEVEL_VERBOSE} -eq 1 ]]; then
-    python3 ${path_python3} > /dev/null 2>&1
+    command_python3+=" python3 ${path_python3} > /dev/null 2>&1"
   elif [[ ${LEVEL_VERBOSE} -eq 2 ]]; then
-    python3 -W ignore ${path_python3}
+    command_python3+=" python3 -W ignore ${path_python3} 2>&1"
   else
     :
   fi
+
+  if [[ $(is_log) = "true" ]]; then
+    command_python3+=" | tee -a ${PATH_LOG}"
+  fi
+
+  eval "${command_python3}"
 }
 #
 #

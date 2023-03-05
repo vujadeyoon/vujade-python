@@ -8,8 +8,8 @@ Description: A method-wrapper for the package, vujade.
 """
 
 
-__date__ = '230305'
-__version__ = '0.6.0'
+__date__ = '230306'
+__version__ = '0.6.1'
 __all__ = [
     'main_encdec',
     'main_img2vid',
@@ -17,6 +17,7 @@ __all__ = [
     'main_profiler_gpu_android',
     'vujade_argparse',
     'vujade_aws',
+    'vujade_builtins',
     'vujade_bytes',
     'vujade_compression',
     'vujade_cryptography',
@@ -60,56 +61,3 @@ __all__ = [
     'vujade_xlsx',
     'vujade_yaml',
     ]
-
-
-import os
-import logging
-from pathlib import Path
-from pytz import timezone
-from typing import Optional
-
-
-class VujadeLog(object):
-    @staticmethod
-    def get_level_verbose() -> int:
-        try:
-            res = int(os.environ.get('LEVEL_VERBOSE', ''))
-        except ValueError as e:
-            res = 3
-
-        return res
-
-    @staticmethod
-    def get_spath_log(_timezone=timezone('Asia/Seoul')) -> Optional[str]:
-        path_log = Path(os.environ.get('PATH_LOG', ''))
-
-        if path_log.suffix in {'.log', '.txt'}:
-            res = '{}'.format(path_log)
-        else:
-            res = None
-
-        return res
-
-    @staticmethod
-    def get_log_level() -> int:
-        log_level = os.environ.get('LOG_LEVEL', 'DEBUG')
-
-        try:
-            res = getattr(logging, log_level)
-        except AttributeError as e:
-            res = getattr(logging, 'DEBUG')
-
-        return res
-
-
-env_var = {
-    'verbose': {
-        'level': VujadeLog.get_level_verbose(),
-    },
-    'log': {
-        'path': VujadeLog.get_spath_log(),
-        'level': VujadeLog.get_log_level(),
-        'is_traceback_print_stack': False,
-        'builtins': {'print', 'input'},
-    }
-}
