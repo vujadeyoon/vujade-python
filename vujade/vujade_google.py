@@ -18,7 +18,7 @@ import gspread
 from typing import Optional, Tuple
 from oauth2client.service_account import ServiceAccountCredentials
 from vujade import vujade_str as str_
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 class GoogleWorkSheet(object):
@@ -131,5 +131,5 @@ if __name__=='__main__':
         'Description': 'FirstA+'
     }
 
-    # printf(gs_3dmm.get_data_facial_alignment())
+    # printd(gs_3dmm.get_data_facial_alignment())
     gs_3dmm.set_data_facial_alignment(_data_facial_alignment=data_facial_alignment_curr, _columns=('A', 'F'))

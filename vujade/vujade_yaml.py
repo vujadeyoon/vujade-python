@@ -12,17 +12,14 @@ import yaml
 
 
 class YAML(object):
-    def __init__(self, _spath_filename: str, _mode: str) -> None:
-        super(YAML, self).__init__()
-        self.spath_filename = _spath_filename
-        self.mode = _mode
-
-    def read(self) -> dict:
-        with open(self.spath_filename, self.mode) as f:
+    @staticmethod
+    def read(_spath_filename: str, _mode: str = 'r') -> dict:
+        with open(_spath_filename, _mode) as f:
             data = yaml.load(f, Loader=yaml.FullLoader)
 
         return data
 
-    def write(self, _data: dict) -> None:
-        with open(self.spath_filename, self.mode) as f:
+    @staticmethod
+    def write(_spath_filename: str, _data: dict, _mode: str = 'w') -> None:
+        with open(_spath_filename, _mode) as f:
             yaml.dump(_data, f)

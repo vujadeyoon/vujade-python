@@ -14,7 +14,7 @@ from typing import List, Optional, Set, Union
 from vujade import vujade_list as list_
 from vujade import vujade_path as path_
 from vujade import vujade_text as text_
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 class Wavefront(object):

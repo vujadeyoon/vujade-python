@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 from typing import Optional, List
 from vujade import vujade_imgcv as imgcv_
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 class Visualize(object):

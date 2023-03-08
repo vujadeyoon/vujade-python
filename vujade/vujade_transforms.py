@@ -22,8 +22,12 @@ from vujade import vujade_imgcv as imgcv_
 from vujade import vujade_utils as utils_
 
 
-def ndarr2tensor(_ndarr: np.ndarray, _axis_expanded: int = 0, _axes_swapped: tuple = (0, 3, 1, 2)) -> torch.Tensor:
-    return torch.from_numpy(np.transpose(np.expand_dims(_ndarr, axis=_axis_expanded), axes=_axes_swapped))
+def array2batch(_ndarr: np.ndarray, _axis_expanded: int = 0, _axes_swapped: tuple = (0, 3, 1, 2)) -> np.ndarray:
+    return np.transpose(np.expand_dims(_ndarr, axis=_axis_expanded), axes=_axes_swapped)
+
+
+def ndarr2tensor(_ndarr: np.ndarray) -> torch.Tensor:
+    return torch.from_numpy(_ndarr)
 
 
 class Standardize(object):

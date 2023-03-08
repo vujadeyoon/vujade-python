@@ -11,7 +11,7 @@ Description: A main python script to profile GPU memory on Android device.
 import argparse
 import time
 from vujade import vujade_utils as utils_
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 if __name__ == '__main__':
@@ -40,7 +40,7 @@ if __name__ == '__main__':
             percentage_usage_gpu = 100 * ratio_usage_gpu
             str_info = '[PID: {}] GPU temp.: {}; GPU usage: {:.2f}%.'.format(utils_.getpid(), temp_gpu, percentage_usage_gpu)
             if (args.temp_gpu_criteria < percentage_usage_gpu):
-                printf(str_info + ' The GPU may be used.', _color='WARNING', _is_pause=False)
+                printd(str_info + ' The GPU may be used.', _color='WARNING', _is_pause=False)
             else:
-                printf(str_info, _is_pause=False)
+                printd(str_info, _is_pause=False)
             time.sleep(args.time_unit)

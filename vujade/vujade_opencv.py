@@ -61,14 +61,10 @@ class CppOpenCVMat(object):
             }
         }
     """
-    def __init__(self, _spath_filename: str) -> None:
-        super(CppOpenCVMat, self).__init__()
-        self.spath_filename = _spath_filename
-        self.json = json_.JSON(_spath_filename=self.spath_filename)
-
-    def run_import(self, _name_ndarr: str = 'cameraMatrix') -> np.ndarray:
+    @staticmethod
+    def run_import(_spath_filename: str, _name_ndarr: str = 'cameraMatrix') -> np.ndarray:
         # Import a json file into a ndarray for cv::Mat based on C++ OpenCV
-        data = self.json.read()
+        data = json_.JSON.read(_spath_filename=_spath_filename, _mode='r')
         data_mat = data[_name_ndarr]
         ndarr_rows = data_mat['rows']
         ndarr_cols = data_mat['cols']
@@ -78,7 +74,8 @@ class CppOpenCVMat(object):
 
         return ndarr_data
 
-    def run_export(self, _ndarr: np.ndarray, _name_ndarr: str = 'cameraMatrix') -> None:
+    @staticmethod
+    def run_export(_spath_filename: str, _ndarr: np.ndarray, _name_ndarr: str = 'cameraMatrix') -> None:
         # Export a ndarray into a json file for cv::Mat based on C++ OpenCV
         ndarr_rows = _ndarr.shape[0]
         ndarr_cols = _ndarr.shape[1]
@@ -99,4 +96,4 @@ class CppOpenCVMat(object):
             }
         }
 
-        self.json.write(_data=data)
+        json_.JSON.write(_spath_filename=_spath_filename, _data=data)

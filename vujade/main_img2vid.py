@@ -16,7 +16,7 @@ from tqdm import tqdm
 from vujade import vujade_path as path_
 from vujade import vujade_imgcv as imgcv_
 from vujade import vujade_videocv as videocv_
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 def get_args() -> argparse.Namespace:

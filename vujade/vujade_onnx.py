@@ -14,6 +14,8 @@ import onnxruntime
 import numpy as np
 from typing import Union
 from onnxsim import simplify
+from vujade import vujade_path as path_
+from vujade.vujade_debug import printd
 
 
 class ONNX(object):
@@ -46,8 +48,9 @@ class ONNX(object):
             raise BufferError('The conversion for simplifying ONNX is failed.')
         return model_onnx_simp
 
-    @staticmethod
+    @classmethod
     def pytorch2onnx(
+            cls,
             _model,                                                                         # model being run
             _tensor_inputs: torch.Tensor,                                                   # model input (or a tuple for multiple inputs)
             _spath_onnx: str,                                                               # where to save the model (can be a file or file-like object)
@@ -56,8 +59,11 @@ class ONNX(object):
             _is_do_constant_folding: bool = True,                                           # whether to execute constant folding for optimization
             _input_names: Union[list, tuple] = ('input', ),                                 # the model's input names
             _output_names: Union[list, tuple] = ('output', ),                               # the model's output names
-            _dynamic_axes: dict = {'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}} # variable length axes
+            _dynamic_axes: dict = {'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}, # variable length axes
+            _is_simplify: bool = True
     ) -> None:
+        path_onnx = path_.Path(_spath_onnx)
+
         if isinstance(_input_names, tuple):
             _input_names = list(_input_names)
         if isinstance(_output_names, tuple):
@@ -74,3 +80,6 @@ class ONNX(object):
             output_names=_output_names,
             dynamic_axes=_dynamic_axes
         )
+
+        if (_is_simplify is True) and (path_onnx.path.is_file()):
+            cls.save(_model_onnx=cls.load(_spath_onnx=_spath_onnx), _spath_onnx=_spath_onnx, _is_simplify=_is_simplify)

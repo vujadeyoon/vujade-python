@@ -8,8 +8,8 @@ Description: A method-wrapper for the package, vujade.
 """
 
 
-__date__ = '230730'
-__version__ = '0.6.8.1'
+__date__ = '230803'
+__version__ = '0.6.8.3'
 __all__ = [
     'main_encdec',
     'main_img2vid',
@@ -26,7 +26,6 @@ __all__ = [
     'vujade_datastructure',
     'vujade_debug',
     'vujade_dlib',
-    'vujade_dnn',
     'vujade_download',
     'vujade_erase',
     'vujade_flops_counter',
@@ -60,7 +59,9 @@ __all__ = [
     'vujade_str',
     'vujade_tensorboard',
     'vujade_text',
+    'vujade_tflite',
     'vujade_time',
+    'vujade_torch',
     'vujade_transforms',
     'vujade_utils',
     'vujade_videocv',

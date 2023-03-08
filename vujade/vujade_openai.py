@@ -11,7 +11,7 @@ Description: A module for OpenAI
 import argparse
 import openai
 from typing import Optional
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 class ChatGPT(object):
@@ -47,12 +47,12 @@ class MainChatGPT(object):
         chatgpt = ChatGPT(_openai_api_key=args.openai_aip_key)
 
         ans = chatgpt.generate_response(_prompt="Let's have a chat.")
-        printf('ChatGPT: {}'.format(ans), _is_pause=False)
+        printd('ChatGPT: {}'.format(ans), _is_pause=False)
 
         while True:
             prompt = input("You: ")
             ans = chatgpt.generate_response(_prompt=prompt)
-            printf('ChatGPT: {}'.format(ans), _is_pause=False)
+            printd('ChatGPT: {}'.format(ans), _is_pause=False)
 
     @staticmethod
     def _get_args() -> argparse.Namespace:

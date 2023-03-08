@@ -24,7 +24,7 @@ from external_lib.iBUG.roi_tanh_warping import wrapper
 from vujade import vujade_list as list_
 from vujade import vujade_imgcv as imgcv_
 from vujade import vujade_utils as utils_
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 class Compose(object):

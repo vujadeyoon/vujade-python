@@ -19,6 +19,7 @@ import torch
 import numpy as np
 from vujade import vujade_resource as rsc_
 from vujade import vujade_utils as utils_
+from vujade.vujade_debug import encode_color
 
 
 class DEBUG(object):
@@ -75,7 +76,7 @@ def measure_time(_iter: int = 1, _warmup: int = 0):
             info_trace_1 = '[{}: {}]:'.format(debug_info.fileName, debug_info.lineNumber)
             info_trace_2 = 'The function, {} is called.'.format(_func.__name__)
             info_trace_3 = 'Total time for {} times: {:.2e} sec. Avg. time: {:.2e} sec.'.format(_iter, time_cumsum, time_cumsum / _iter)
-            print('{} {} {}'.format(info_trace_1, info_trace_2, info_trace_3))
+            print(encode_color('{} {} {}'.format(info_trace_1, info_trace_2, info_trace_3)))
             return result
         return _wrapper
     return _measure_time

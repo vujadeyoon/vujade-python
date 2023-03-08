@@ -23,7 +23,7 @@ try:
     from vujade import vujade_text as text_
     from vujade import vujade_download as download_
     from vujade import vujade_compression as comp_
-    from vujade.vujade_debug import printf
+    from vujade.vujade_debug import printd
 except Exception as e:
     sys.path.append(os.path.join(os.getcwd()))
     from vujade import vujade_utils as utils_
@@ -32,7 +32,7 @@ except Exception as e:
     from vujade import vujade_text as text_
     from vujade import vujade_download as download_
     from vujade import vujade_compression as comp_
-    from vujade.vujade_debug import printf
+    from vujade.vujade_debug import printd
 
 
 def get_aws_mode_base() -> Set[str]:
@@ -563,7 +563,7 @@ if __name__=='__main__':
     args = parser.parse_args()
 
     if args.mode in get_aws_mode_s3():
-        printf('args.mode: {}.'.format(args.mode), _is_pause=False)
+        printd('args.mode: {}.'.format(args.mode), _is_pause=False)
         aws_s3 = S3(_mode=args.mode, _access_key=args.access_key, _secret_key=args.secret_key, _spath_aws=args.path_aws)
     else:
         raise NotImplementedError('The AWS S3 mode: {} is not supported yet.'.format(args.mode))

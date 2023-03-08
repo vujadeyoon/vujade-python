@@ -56,7 +56,7 @@ class DEBUG(object):
         return 'YELLOW'
 
 
-def printf(*_args, **_kwargs) -> str:
+def encode_color(*_args, **_kwargs) -> str:
     colors = DEBUG.get_colors()
 
     # Assign default color.
@@ -66,6 +66,20 @@ def printf(*_args, **_kwargs) -> str:
     if ('_color' in _kwargs.keys()) and (_kwargs['_color'] not in colors):
         raise ValueError('The given color, {} should be included in colors (i.e. {}).'.format(_kwargs['_color'], colors.keys()))
 
+    info_str = ''
+    for _idx, _arg in enumerate(_args):
+        info_str += '{} '.format(_arg)
+    info_str = info_str.rstrip(' ')
+
+    if ('_color' in _kwargs.keys()) and (_kwargs['_color'] in colors):
+        info_colored = colors[_kwargs['_color']] + info_str + colors['ENDC']
+    else:
+        raise ValueError
+
+    return info_colored
+
+
+def printd(*_args, **_kwargs) -> str:
     debug_info = DEBUG()
     debug_info.get_file_line()
 
@@ -76,8 +90,7 @@ def printf(*_args, **_kwargs) -> str:
 
     info_traced = '[{}:{}] '.format(debug_info.fileName, debug_info.lineNumber) + info_str
 
-    if ('_color' in _kwargs.keys()) and (_kwargs['_color'] in colors):
-        info_traced = colors[_kwargs['_color']] + info_traced + colors['ENDC']
+    info_traced_colored = encode_color(info_traced, **_kwargs)
 
     if ('_is_pause' in _kwargs.keys()) and (_kwargs['_is_pause'] is False):
         _print = print
@@ -87,6 +100,6 @@ def printf(*_args, **_kwargs) -> str:
     if ('_is_print' in _kwargs.keys()) and (_kwargs['_is_print'] is False):
         pass
     else:
-        _print(info_traced)
+        _print(info_traced_colored)
 
-    return info_traced
+    return info_traced_colored

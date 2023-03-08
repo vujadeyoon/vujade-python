@@ -14,7 +14,7 @@ import random
 import numpy as np
 from typing import Any
 from collections import deque
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 def remove_element(_list_src: list, _element_to_be_removed: list) -> list:

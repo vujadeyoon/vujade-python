@@ -3,8 +3,8 @@ Dveloper: vujadeyoon
 Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
-Title: vujade_dnn.py
-Description: Useful DNN modules
+Title: vujade_torch.py
+Description: A module for PyTorch
 
 Acknowledgement:
     1. This implementation is highly inspired from thstkdgus35 and 4uiiurz1.
@@ -21,7 +21,7 @@ import _collections
 import cpuinfo
 import torch
 import torchvision
-import torchsummary
+import torchinfo
 import torch.nn as nn
 from collections import OrderedDict
 from typing import Optional
@@ -29,7 +29,8 @@ from ptflops import get_model_complexity_info
 from vujade import vujade_datastructure as ds_
 from vujade import vujade_profiler as prof_
 from vujade import vujade_flops_counter as flops_counter_
-from vujade.vujade_debug import printf
+from vujade import vujade_utils as utils_
+from vujade.vujade_debug import printd
 
 
 COMPLEXITY_TIME_ITER = 10
@@ -47,6 +48,40 @@ class PyTorchUtils(object):
     @staticmethod
     def is_cuda_model(_model) -> bool:
         return next(_model.parameters()).is_cuda
+
+    @staticmethod
+    def prepare_device(_is_cuda: bool) -> tuple:
+        if _is_cuda is True:
+            device = torch.device('cuda')
+
+            is_gpu_available = torch.cuda.is_available()
+            num_gpu_available = torch.cuda.device_count()
+            gpu_ids_available = list(range(num_gpu_available))
+
+            gpu_ids_required = utils_.get_env_var(_name_var='CUDA_VISIBLE_DEVICES', _default='',
+                                                  _is_raise_existed=True).split(',')
+            num_gpu_required = 0 if gpu_ids_required[0] == '' else len(gpu_ids_required)
+            is_gpu_required = False if num_gpu_required == 0 else True
+            gpu_ids_required = list(map(int, gpu_ids_required)) if is_gpu_required is True else list()
+
+            if not (is_gpu_available is is_gpu_required):
+                raise ValueError(
+                    'The is_gpu_vailable (i.e. {}) should be equal to the is_gpu_required (i.e. {}).'.format(
+                        is_gpu_available, is_gpu_required))
+
+            if num_gpu_available < num_gpu_required:
+                raise ValueError('The num_gpu_required (i.e. {}) should not exceed num_gpu_available (i.e. {}).'.format(
+                    num_gpu_required, num_gpu_available))
+
+            if not (set(gpu_ids_required).issubset(set(gpu_ids_available))):
+                raise ValueError(
+                    'The gpu_ids_required (i.e. {}) should be subset of the gpu_ids_available (i.e. {}).'.format(
+                        gpu_ids_required, gpu_ids_available))
+        else:
+            device = torch.device('cpu')
+            gpu_ids_required = list()
+
+        return device, gpu_ids_required
 
 
 class FeatureExtractor(nn.Module):
@@ -159,9 +194,9 @@ class DNNComplexity(object):
         self._complexity_space()
 
     def show(self) -> None:
-        printf('The model name: {}'.format(self.model_cpu.__class__), _is_pause=False)
-        printf('The CUDA is available: {}.'.format(self.is_cuda), _is_pause=False)
-        printf('The current single device is {}.'.format(self.device_name), _is_pause=False)
+        printd('The model name: {}'.format(self.model_cpu.__class__), _is_pause=False)
+        printd('The CUDA is available: {}.'.format(self.is_cuda), _is_pause=False)
+        printd('The current single device is {}.'.format(self.device_name), _is_pause=False)
         self._complexity_space()
         self._complexity_time_cpu()
         if self.is_cuda:
@@ -182,10 +217,10 @@ class DNNComplexity(object):
                     _as_strings=True,
                     _verbose=False)
 
-        printf('{:<25} {}.'.format('Tensor shape: ', self.input_res), _is_pause=False)
-        printf('{:<25} {}.'.format('Trainable parameters: ', params), _is_pause=False)
-        printf('{:<25} {}.'.format('Macs: ', macs), _is_pause=False)
-        printf('{:<25} {}.'.format('Flops: ', flops), _is_pause=False)
+        printd('{:<25} {}.'.format('Tensor shape: ', self.input_res), _is_pause=False)
+        printd('{:<25} {}.'.format('Trainable parameters: ', params), _is_pause=False)
+        printd('{:<25} {}.'.format('Macs: ', macs), _is_pause=False)
+        printd('{:<25} {}.'.format('Flops: ', flops), _is_pause=False)
 
     @prof_.measure_time(_iter=COMPLEXITY_TIME_ITER, _warmup=COMPLEXITY_TIME_WARMUP)
     def _complexity_time_cpu(self) -> None:
@@ -199,10 +234,9 @@ class DNNComplexity(object):
         if not _device in {'cpu', 'gpu'}:
             raise ValueError
 
-        printf('{} Network summary.'.format(self.model_cpu.__class__.__name__), _is_pause=False)
-
+        printd('{} Network summary.'.format(self.model_cpu.__class__.__name__), _is_pause=False)
         if _is_summary is True:
-            torchsummary.summary(self.model_cpu, input_size=self.input_res, batch_size=_batch_size, device=_device)
+            printd(torchinfo.summary(self.model_cpu, input_size=(_batch_size, *self.input_res), device=_device, verbose=0), _is_pause=False)
 
         tensor_input = torch.randn([1, *self.input_res], dtype=torch.float).to(_device)
         counter = flops_counter_.add_flops_counting_methods(self.model_cpu)
@@ -211,10 +245,10 @@ class DNNComplexity(object):
         str_1 = 'Input image resolution: ({}, {}, {}, {})'.format(_batch_size, *self.input_res)
         str_2 = 'Trainable model parameters: {}'.format(self._count_parameters())
         str_3 = 'Flops: {}'.format(flops_counter_.flops_to_string(counter.compute_average_flops_cost()))
-        printf(str_1, _is_pause=False)
-        printf(str_2, _is_pause=False)
-        printf(str_3, _is_pause=False)
-        printf('----------------------------------------------------------------', _is_pause=False)
+        printd(str_1, _is_pause=False)
+        printd(str_2, _is_pause=False)
+        printd(str_3, _is_pause=False)
+        printd('----------------------------------------------------------------', _is_pause=False)
 
         return '{}; {}; {}.'.format(str_1, str_2, str_3)
 

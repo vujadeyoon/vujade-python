@@ -5,7 +5,7 @@ from vujade import vujade_bytes as bytes_
 from vujade import vujade_path as path_
 from vujade import vujade_random as rand_
 from vujade import vujade_str as str_
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 class MainEraseData(object):

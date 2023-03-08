@@ -4,7 +4,7 @@ import traceback
 import slack_sdk
 import slack_sdk.errors
 from vujade import vujade_time as time_
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 class DEBUG(object):
@@ -82,9 +82,9 @@ class Slack(object):
         try:
             response = self.client_bot.chat_postMessage(channel=self.channel, text=info_trace)
             if response.status_code >= 500:
-                printf('It is failed to send messages via {}'.format(self.name_class), _is_pause=False)
+                printd('It is failed to send messages via {}'.format(self.name_class), _is_pause=False)
         except slack_sdk.errors.SlackApiError as e:
-            printf('It is failed to send messages via {} with the Exception: {}.'.format(self.name_class, e.response['error']), _is_pause=False)
+            printd('It is failed to send messages via {} with the Exception: {}.'.format(self.name_class, e.response['error']), _is_pause=False)
 
     def _add_msg(self, _info_trace: str, _add_msg: str) -> str:
         if len(_info_trace) != 0:

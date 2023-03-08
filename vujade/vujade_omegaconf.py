@@ -11,7 +11,7 @@ Description: A module for OmegaConf
 import omegaconf
 from omegaconf import OmegaConf as _OmeagaConf
 from typing import Any, Optional, Union
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 class OmegaConf(object):
@@ -53,7 +53,7 @@ class OmegaConf(object):
                 if isinstance(_val, omegaconf.dictconfig.DictConfig) is True:
                     OmegaConf._check(_cfg=_val, _key_recursived=key_recursived)
         except Exception as e:
-            error_traced = str(printf(e, _is_print=False, _is_pause=False))
+            error_traced = str(printd(e, _is_print=False, _is_pause=False))
             raise UserWarning(error_traced)
 
     @staticmethod

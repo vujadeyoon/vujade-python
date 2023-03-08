@@ -15,7 +15,7 @@ import pyvista as pv
 import pyvistaqt as pvqt
 from typing import Optional
 from vujade import vujade_path as path_
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 class _PyVista(object):

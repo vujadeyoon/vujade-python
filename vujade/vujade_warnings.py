@@ -14,7 +14,7 @@ Reference:
 
 import warnings
 from typing import Iterable, Tuple, Type
-from vujade.vujade_debug import printf
+from vujade.vujade_debug import printd
 
 
 class Warnings(object):
