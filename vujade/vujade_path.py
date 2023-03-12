@@ -55,8 +55,10 @@ class Path(object):
             raise OSError('The file move is failed.: {}'.format(e))
 
     def copy(self, _spath_dst: str) -> None:
+        path_dst = Path(_spath_dst)
+        path_dst.parent.path.mkdir(mode=0o755, parents=True, exist_ok=True)
         try:
-            shutil.copy2(src=self.str, dst=_spath_dst)
+            shutil.copy2(src=self.str, dst=path_dst.str)
         except Exception as e:
             raise OSError('The file copy is failed.: {}'.format(e))
 

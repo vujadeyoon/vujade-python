@@ -17,6 +17,10 @@ from collections import deque
 from vujade.vujade_debug import printf
 
 
+def remove_element(_list_src: list, _element_to_be_removed: list) -> list:
+    return [_ele for _ele in _list_src if _ele not in _element_to_be_removed]
+
+
 def sorted_set(_list: list) -> list:
     return list(sorted(set(_list), key=_list.index))
 
