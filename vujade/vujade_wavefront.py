@@ -164,20 +164,30 @@ class FunctionVertex(object):
         return np.mean(_ndarr_v, axis=0)
 
     @staticmethod
-    def get_volume_cube_3d(_ndarr_v: np.ndarray) -> float:
-        res = 1.0
+    def get_three_edges_cuboid(_ndarr_v: np.ndarray) -> np.ndarray:
         max_pts = list(map(float, np.max(_ndarr_v, axis=0)))
         min_pts = list(map(float, np.min(_ndarr_v, axis=0)))
-        distance_pts = [abs(_max_pts - _min_pts) for (_max_pts, _min_pts) in zip(max_pts, min_pts)]
+        return np.asarray([abs(_max_pts - _min_pts) for (_max_pts, _min_pts) in zip(max_pts, min_pts)])
 
-        for _distance_pt in distance_pts:
-            res *= _distance_pt
-
-        return res
+    @staticmethod
+    def get_volume_cuboid(_ndarr_v: np.ndarray) -> float:
+        ndarr_distance_pts = FunctionVertex.get_three_edges_cuboid(_ndarr_v=_ndarr_v)
+        return float(np.prod(ndarr_distance_pts))
 
     @staticmethod
     def get_number_of_vertices(_ndarr_v: np.ndarray) -> int:
         return len(_ndarr_v)
+
+    @staticmethod
+    def swap_axis_yz(_ndarr_v: np.ndarray) -> np.ndarray:
+        res = _ndarr_v.copy()
+        if res.ndim == 1:
+            res[1:3] = res[[2, 1]]
+        elif res.ndim == 2:
+            res[:, 1:3] = res[:, [2, 1]]
+        else:
+            raise NotImplementedError('The swap_axis_yz has been supported only for ndim=1 or ndim=2.')
+        return res
 
 
 class Vertex(object):
@@ -240,7 +250,7 @@ class Vertex(object):
     def _update(self) -> None:
         self.num_v = FunctionVertex.get_number_of_vertices(_ndarr_v=self.ndarr_v)
         self.midpoint = FunctionVertex.get_midpoint(_ndarr_v=self.ndarr_v)
-        self.volume = FunctionVertex.get_volume_cube_3d(_ndarr_v=self.ndarr_v)
+        self.volume = FunctionVertex.get_volume_cuboid(_ndarr_v=self.ndarr_v)
 
     def _check_dimension(self, _ndarr_v: np.ndarray) -> None:
         if _ndarr_v.ndim != 2:
