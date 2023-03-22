@@ -410,7 +410,11 @@ class Vertex(object):
                 raise NotImplementedError('The _ele_v_new, {} is out of length.'.format(_ele_v_new))
         self._update()
 
-    def scale(self, _scale_factor: float):
+    def scale(self, _scale_factor: Union[float, np.ndarray]):
+        if isinstance(_scale_factor, np.ndarray):
+            if _scale_factor.shape != self.ndarr_v.shape:
+                raise ('The shape of the _scale_factor should be same to the shape of self.ndarr_v.')
+
         self.ndarr_v *= _scale_factor
         self._update()
 
