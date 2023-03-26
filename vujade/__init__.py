@@ -8,8 +8,8 @@ Description: A method-wrapper for the package, vujade.
 """
 
 
-__date__ = '230318'
-__version__ = '0.6.4'
+__date__ = '230326'
+__version__ = '0.6.6'
 __all__ = [
     'main_encdec',
     'main_img2vid',
@@ -17,6 +17,7 @@ __all__ = [
     'main_profiler_gpu_android',
     'vujade_argparse',
     'vujade_aws',
+    'vujade_blender',
     'vujade_builtins',
     'vujade_bytes',
     'vujade_compression',

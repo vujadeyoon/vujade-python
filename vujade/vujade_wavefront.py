@@ -10,7 +10,8 @@ Description: A module for wavefront
 
 import os
 import numpy as np
-from typing import List, Optional, Set, Tuple, Union
+from typing import List, Optional, Set, Union
+from vujade import vujade_list as list_
 from vujade import vujade_path as path_
 from vujade import vujade_text as text_
 from vujade.vujade_debug import printf
@@ -53,8 +54,19 @@ class Wavefront(object):
 
         return res
 
-    def get_name_objects(self) -> Set[str]:
-        return set(self.data_obj['o'].keys())
+    def get_name_objects(self) -> list:
+        return list_.sorted_set(_list=list(self.data_obj['o'].keys()))
+
+    def change_name_object(self, _name_object_src: Optional[str] = None, _name_object_dst: str = '') -> None:
+        if _name_object_src is None:
+            if len(self.get_name_objects()) == 1:
+                name_object_src = ''.join(self.get_name_objects())
+            else:
+                raise ValueError('The _name_object_src should not be None when len(self.get_name_objects()) != 1.')
+        else:
+            name_object_src = _name_object_src
+            self._check_object(_name_object=name_object_src)
+        self.data_obj['o'][_name_object_dst] = self.data_obj['o'].pop(name_object_src)
 
     def get_object(self, _name_object: Optional[str] = None) -> dict:
         if _name_object is None:
