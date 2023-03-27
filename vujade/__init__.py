@@ -8,8 +8,8 @@ Description: A method-wrapper for the package, vujade.
 """
 
 
-__date__ = '230326'
-__version__ = '0.6.6'
+__date__ = '230327'
+__version__ = '0.6.7'
 __all__ = [
     'main_encdec',
     'main_img2vid',
@@ -50,6 +50,7 @@ __all__ = [
     'vujade_opencv',
     'vujade_path',
     'vujade_profiler',
+    'vujade_pyvista',
     'vujade_random',
     'vujade_resource',
     'vujade_segmentation',
