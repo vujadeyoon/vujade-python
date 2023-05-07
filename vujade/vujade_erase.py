@@ -77,7 +77,8 @@ class MainEraseData(object):
 
 if __name__=='__main__':
     # Usage:
-    #     i)  export PYTHONPATH=$PYTHONPATH:$(pwd)
-    #     ii) python3 ./vujade/vujade_erase.py --path_src ${path_dir_or_file}
+    #     i)   export PYTHONPATH=$PYTHONPATH:$(pwd)
+    #     ii)  python3 ./vujade/vujade_erase.py --path_src ${path_dir_or_file}
+    #     iii) wipe -rfi ${path_dir_or_file}
 
     MainEraseData.run()

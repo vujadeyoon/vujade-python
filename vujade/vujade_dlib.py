@@ -20,12 +20,12 @@ from vujade import vujade_path as path_
 from vujade.vujade_debug import printf
 
 
-class _DLIB(object):
+class DLIB(object):
     def __init__(self, _num_landmarks: int = 68, _spath_model_shape: str = os.path.join(os.getcwd(), 'shape_predictor_68_face_landmarks.dat')) -> None:
         """
         :param _spath_model_shape: path to shape_predictor_68_face_landmarks.dat file
         """
-        super(_DLIB, self).__init__()
+        super(DLIB, self).__init__()
         self.num_landmarks = _num_landmarks
         self.url_model_shape = 'http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2'
         self.path_model_shape = path_.Path(_spath_model_shape)
@@ -36,13 +36,13 @@ class _DLIB(object):
         self.detector = dlib.get_frontal_face_detector() # cnn_face_detection_model_v1 also can be used
         self.shape_predictor = dlib.shape_predictor(self.path_model_shape.str)
 
-    def _load_rgb_image(self, _spath_image: str) -> np.ndarray:
+    def load_rgb_image(self, _spath_image: str) -> np.ndarray:
         return dlib.load_rgb_image(_spath_image)
 
-    def _get_detected_faces(self, _ndarr_img_rgb: np.ndarray):
+    def get_detected_faces(self, _ndarr_img_rgb: np.ndarray):
         return self.detector(_ndarr_img_rgb, 1)
 
-    def _get_landmarks(self, _ndarr_img_rgb: np.ndarray, _dets) -> np.ndarray:
+    def get_landmarks(self, _dets, _ndarr_img_rgb: np.ndarray) -> np.ndarray:
         if len(_dets) < 1:
             raise ValueError('The number of detected faces should be greater than 0')
 
@@ -66,7 +66,7 @@ class _DLIB(object):
         path_model_shape_bz2.unlink(_missing_ok=True)
 
 
-class FaceAlginment(_DLIB):
+class FaceAlginment(DLIB):
     def __init__(self, _num_landmarks: int = 68, _spath_model_shape: str = os.path.join(os.getcwd(), 'shape_predictor_68_face_landmarks.dat')) -> None:
         super(FaceAlginment, self).__init__(_num_landmarks=_num_landmarks, _spath_model_shape=_spath_model_shape)
 
@@ -92,10 +92,10 @@ class FaceAlginment(_DLIB):
             spath_image = os.path.join(os.getcwd(), img_src.png')
 
             fa = FaceAlginment(_num_landmarks=num_landmarks, _spath_model_shape=spath_model_shape)
-            ndarr_img_rgb = fa._load_rgb_image(_spath_image=spath_image)
-            dets = fa._get_detected_faces(_ndarr_img_rgb=ndarr_img_rgb)
+            ndarr_img_rgb = fa.load_rgb_image(_spath_image=spath_image)
+            dets = fa.get_detected_faces(_ndarr_img_rgb=ndarr_img_rgb)
             if len(dets) == 1:
-                landmarks = fa._get_landmarks(_dets=dets, _ndarr_img_rgb=ndarr_img_rgb)
+                landmarks = fa.get_landmarks(_dets=dets, _ndarr_img_rgb=ndarr_img_rgb)
                 ndarr_img_aligned = fa.run(src_file=spath_image, face_landmarks=landmarks)
                 cv2.imwrite('./img_aligned.png', ndarr_img_aligned)
         """
