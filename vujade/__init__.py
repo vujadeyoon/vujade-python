@@ -8,8 +8,8 @@ Description: A method-wrapper for the package, vujade.
 """
 
 
-__date__ = '230507'
-__version__ = '0.6.7.1'
+__date__ = '230509'
+__version__ = '0.6.7.3'
 __all__ = [
     'main_encdec',
     'main_img2vid',

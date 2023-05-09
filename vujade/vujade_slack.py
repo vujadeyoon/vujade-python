@@ -3,7 +3,6 @@ import re
 import traceback
 import slack_sdk
 import slack_sdk.errors
-import slack_cleaner2
 from vujade import vujade_time as time_
 from vujade.vujade_debug import printf
 
@@ -33,7 +32,7 @@ class DEBUG(object):
 
 
 class Slack(object):
-    def __init__(self, _token_usr: str, _token_bot: str, _channel: str, _is_time: bool= True, _is_debug: bool = False) -> None:
+    def __init__(self, _token_user: str, _token_bot: str, _channel: str, _is_time: bool= True, _is_debug: bool = False) -> None:
         super(Slack, self).__init__()
         """
         Required scopes of the OAuth & Permissions.
@@ -53,16 +52,15 @@ class Slack(object):
                 - mpim:read
                 - users:read
         """
-        self.token_usr = _token_usr
+        self.token_user = _token_user
         self.token_bot = _token_bot
         self.channel = _channel
         self.is_time = _is_time
         self.is_debug = _is_debug
-        self.client_cleaner = slack_cleaner2.SlackCleaner(self.token_usr)
-        self.client_bot = slack_sdk.WebClient(token=self.token_bot)
+        self.client_bot = slack_sdk.WebClient(token=self.token_user)
         self.name_class = self.__class__.__name__
 
-    def post_msg(self, *_args):
+    def post_msg(self, *_args) -> None:
         info_str = ''
         for _idx, _arg in enumerate(_args):
             info_str += '{} '.format(_arg)
@@ -88,11 +86,6 @@ class Slack(object):
         except slack_sdk.errors.SlackApiError as e:
             printf('It is failed to send messages via {} with the Exception: {}.'.format(self.name_class, e.response['error']), _is_pause=False)
 
-    def clean_channel(self):
-        for msg in self.client_cleaner.msgs(filter(slack_cleaner2.predicates.match(self.channel), self.client_cleaner.conversations)):
-            msg.delete(replies=True, files=True)
-        print('')
-
     def _add_msg(self, _info_trace: str, _add_msg: str) -> str:
         if len(_info_trace) != 0:
             _info_trace += ' '
@@ -100,3 +93,11 @@ class Slack(object):
         _info_trace += _add_msg
 
         return _info_trace
+
+
+if __name__=='__main__':
+    token_user = 'secret'
+    token_bot = 'secret'
+
+    slack = Slack(_token_user=token_user, _token_bot=token_bot, _channel='#random')
+    slack.post_msg('message')
