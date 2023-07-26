@@ -394,27 +394,6 @@ def print_color(_str: str, _color: str = 'WARNING') -> None:
     print(colors[_color] + _str + colors['ENDC'])
 
 
-def printf_color(_str: str, _color: str = 'WARNING', _is_pause: bool = True) -> None:
-    if _is_pause is False:
-        _print = print
-    else:
-        _print = input
-
-    debug_info = DEBUG()
-    debug_info.get_file_line()
-    info_trace = '[{}: {}]: '.format(debug_info.fileName, debug_info.lineNumber) + _str
-
-    colors = {'PUPPLE':'\033[95m',
-              'BLUE':'\033[94m',
-              'GREEN':'\033[92m',
-              'WARNING':'\033[93m',
-              'FATAL':'\033[91m',
-              'ENDC':'\033[0m',
-              'BOLD':'\033[1m',
-              'UNDERLINE':'\033[4m'}
-    _print(colors[_color] + info_trace + colors['ENDC'])
-
-
 def pause(_str: str = '<Press enter/return to continue>') -> None:
     debug_info = DEBUG()
     debug_info.get_file_line()

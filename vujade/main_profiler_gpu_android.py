@@ -40,7 +40,7 @@ if __name__ == '__main__':
             percentage_usage_gpu = 100 * ratio_usage_gpu
             str_info = '[PID: {}] GPU temp.: {}; GPU usage: {:.2f}%.'.format(utils_.getpid(), temp_gpu, percentage_usage_gpu)
             if (args.temp_gpu_criteria < percentage_usage_gpu):
-                utils_.printf_color(_str=str_info + ' The GPU may be used.', _color='WARNING', _is_pause=False)
+                printf(str_info + ' The GPU may be used.', _color='WARNING', _is_pause=False)
             else:
                 printf(str_info, _is_pause=False)
             time.sleep(args.time_unit)

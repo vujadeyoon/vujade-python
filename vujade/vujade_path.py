@@ -63,11 +63,7 @@ class Path(object):
             raise OSError('The file copy is failed.: {}'.format(e))
 
     def unlink(self, _missing_ok: bool = True) -> None:
-        if self.path.is_file() is True:
-            self.path.unlink()
-        else:
-            if _missing_ok is False:
-                raise FileNotFoundError('The file, {} is not existed.'.format(self.str))
+        self.path.unlink(missing_ok=_missing_ok)
 
     def rmdir(self) -> None:
         self.path.rmdir()

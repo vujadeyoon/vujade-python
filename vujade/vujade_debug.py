@@ -36,8 +36,36 @@ class DEBUG(object):
 
         return False
 
+    @staticmethod
+    def get_colors() -> dict:
+        return {
+            'PUPPLE': '\033[95m',
+            'BLUE': '\033[94m',
+            'GREEN': '\033[92m',
+            'RED': '\033[91m',
+            'YELLOW': '\033[93m',
+            'FATAL': '\033[91m',
+            'WARNING': '\033[93m',
+            'ENDC': '\033[0m',
+            'BOLD': '\033[1m',
+            'UNDERLINE': '\033[4m'
+        }
+
+    @staticmethod
+    def get_key_color_default() -> str:
+        return 'YELLOW'
+
 
 def printf(*_args, **_kwargs) -> str:
+    colors = DEBUG.get_colors()
+
+    # Assign default color.
+    if ('_color' not in _kwargs.keys()):
+        _kwargs['_color'] = DEBUG.get_key_color_default()
+
+    if ('_color' in _kwargs.keys()) and (_kwargs['_color'] not in colors):
+        raise ValueError('The given color, {} should be included in colors (i.e. {}).'.format(_kwargs['_color'], colors.keys()))
+
     debug_info = DEBUG()
     debug_info.get_file_line()
 
@@ -56,6 +84,9 @@ def printf(*_args, **_kwargs) -> str:
     if ('_is_print' in _kwargs.keys()) and (_kwargs['_is_print'] is False):
         pass
     else:
-        _print(info_trace)
+        if ('_color' in _kwargs.keys()) and (_kwargs['_color'] in colors):
+            _print(colors[_kwargs['_color']] + info_trace + colors['ENDC'])
+        else:
+            _print(info_trace)
 
     return info_trace
