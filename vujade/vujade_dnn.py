@@ -23,7 +23,7 @@ import torch
 import torchvision
 import torchsummary
 import torch.nn as nn
-import torch.nn.functional as F
+from collections import OrderedDict
 from typing import Optional
 from ptflops import get_model_complexity_info
 from vujade import vujade_datastructure as ds_
@@ -34,6 +34,19 @@ from vujade.vujade_debug import printf
 
 COMPLEXITY_TIME_ITER = 10
 COMPLEXITY_TIME_WARMUP = 5
+
+
+class PyTorchUtils(object):
+    @staticmethod
+    def convert_ckpt(_state_dict: OrderedDict, _device: torch.device = torch.device('cpu')) -> OrderedDict:
+        device = torch.device(_device)
+        res = OrderedDict()
+        res.update((_key.replace('module.', ''), _value.to(device)) for _idx, (_key, _value) in enumerate(_state_dict.items()))
+        return res
+
+    @staticmethod
+    def is_cuda_model(_model) -> bool:
+        return next(_model.parameters()).is_cuda
 
 
 class FeatureExtractor(nn.Module):

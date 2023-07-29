@@ -21,6 +21,10 @@ class Warnings(object):
     actions = ("error", "ignore", "always", "default", "module", "once")
 
     @staticmethod
+    def warn(_message: str) -> None:
+        warnings.warn(_message)
+
+    @staticmethod
     def get_filters(_is_pause: bool = True) -> list:
         return warnings.filters
 

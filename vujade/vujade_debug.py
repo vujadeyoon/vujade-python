@@ -74,7 +74,10 @@ def printf(*_args, **_kwargs) -> str:
         info_str += '{} '.format(_arg)
     info_str = info_str.rstrip(' ')
 
-    info_trace = '[{}:{}] '.format(debug_info.fileName, debug_info.lineNumber) + info_str
+    info_traced = '[{}:{}] '.format(debug_info.fileName, debug_info.lineNumber) + info_str
+
+    if ('_color' in _kwargs.keys()) and (_kwargs['_color'] in colors):
+        info_traced = colors[_kwargs['_color']] + info_traced + colors['ENDC']
 
     if ('_is_pause' in _kwargs.keys()) and (_kwargs['_is_pause'] is False):
         _print = print
@@ -84,9 +87,6 @@ def printf(*_args, **_kwargs) -> str:
     if ('_is_print' in _kwargs.keys()) and (_kwargs['_is_print'] is False):
         pass
     else:
-        if ('_color' in _kwargs.keys()) and (_kwargs['_color'] in colors):
-            _print(colors[_kwargs['_color']] + info_trace + colors['ENDC'])
-        else:
-            _print(info_trace)
+        _print(info_traced)
 
-    return info_trace
+    return info_traced
