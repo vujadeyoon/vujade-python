@@ -22,6 +22,20 @@ from vujade import vujade_imgcv as imgcv_
 from vujade import vujade_utils as utils_
 
 
+def ndarr2tensor(_ndarr: np.ndarray, _axis_expanded: int = 0, _axes_swapped: tuple = (0, 3, 1, 2)) -> torch.Tensor:
+    return torch.from_numpy(np.transpose(np.expand_dims(_ndarr, axis=_axis_expanded), axes=_axes_swapped))
+
+
+class Standardize(object):
+    @staticmethod
+    def forward(_ndarr: np.ndarray, _mean: list, _std: list) -> np.ndarray:
+        return (_ndarr - _mean) / _std
+
+    @staticmethod
+    def inverse(_ndarr: np.ndarray, _mean: list, _std: list) -> np.ndarray:
+        return (_ndarr * _std) + _mean
+
+
 class Compose(object):
     # Composes several co_transforms together.
     # For example:

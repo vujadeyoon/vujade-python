@@ -336,12 +336,14 @@ def is_ndarr(_var):
     return isinstance(_var, (np.ndarray, np.generic))
 
 
-def get_env_var(_name_var: str, _default: str = '') -> str:
+def get_env_var(_name_var: str, _default: str = '', _is_raise_existed: bool = False) -> str:
     """This function is intended to get a system environmental variable.
 
         :param str _name_var: A name of the system environmental variable
         :returns: The corresponding value for the system environmental variable
     """
+    if (_is_raise_existed is True) and (_name_var not in os.environ):
+        raise ValueError('The environmental variable, {} is not existed.'.format(_name_var))
     return os.environ.get(_name_var, _default)
 
 

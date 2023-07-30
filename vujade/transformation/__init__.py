@@ -4,7 +4,7 @@ Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
 Title: __init__.py
-Description: A method-wrapper for the package, vujade_transformation.
+Description: A method-wrapper for the package, transformation.
 """
 
 

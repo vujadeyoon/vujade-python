@@ -52,7 +52,7 @@ class _BaseSimpleLog(object):
 
     @staticmethod
     def get_spath_log() -> Optional[str]:
-        path_log = path_.Path(utils_.get_env_var(_name_var='PATH_LOG', _default=''))
+        path_log = path_.Path(utils_.get_env_var(_name_var='PATH_LOG', _default='', _is_raise_existed=False))
 
         if path_log.ext in {'.log', '.txt'}:
             res = '{}'.format(path_log)
@@ -63,7 +63,7 @@ class _BaseSimpleLog(object):
 
     @staticmethod
     def get_level_log() -> int:
-        level_log = utils_.get_env_var(_name_var='LEVEL_LOG', _default='DEBUG')
+        level_log = utils_.get_env_var(_name_var='LEVEL_LOG', _default='DEBUG', _is_raise_existed=False)
 
         try:
             res = getattr(logging, level_log)
@@ -75,7 +75,7 @@ class _BaseSimpleLog(object):
     @staticmethod
     def get_is_traceback_print_stack() -> bool:
         try:
-            res = str_.str2bool(utils_.get_env_var(_name_var='IS_TRACEBACK_PRINT_STACK', _default='False'))
+            res = str_.str2bool(utils_.get_env_var(_name_var='IS_TRACEBACK_PRINT_STACK', _default='False', _is_raise_existed=False))
         except Exception as e:
             res = False
 
