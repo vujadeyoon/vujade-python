@@ -19,7 +19,7 @@ import torch
 import numpy as np
 from vujade import vujade_resource as rsc_
 from vujade import vujade_utils as utils_
-from vujade.vujade_debug import encode_color
+from vujade.vujade_debug import encode_color, printd
 
 
 class DEBUG(object):
@@ -283,14 +283,16 @@ class AverageMeterTime(object):
     """
     This class is intended to profile the processing time
     """
-    def __init__(self, _warmup: int = 0) -> None:
+    def __init__(self, _time_scale_factor: float = 1.0, _warmup: int = 0) -> None:
         """
         :param int _warmup: A number of times for warming up.
         """
         super(AverageMeterTime, self).__init__()
+        self.time_scale_factor = _time_scale_factor
         self.warmup = _warmup
         self.cnt_call = 0
         self.time_len = 0
+        self.time_last = 0.0
         self.time_sum = 0.0
         self.time_avg = 0.0
         self.fps_avg = 0.0
@@ -307,9 +309,10 @@ class AverageMeterTime(object):
             self._update()
 
     def _update(self) -> None:
-        self.time_len = (self.cnt_call - self.warmup)
-        self.time_sum += (self.time_end - self.time_start)
-        self.time_avg = (self.time_sum / self.time_len)
+        self.time_len = self.cnt_call - self.warmup
+        self.time_last = self.time_scale_factor * (self.time_end - self.time_start)
+        self.time_sum += self.time_last
+        self.time_avg = self.time_sum / self.time_len
         self.fps_avg = 1 / (self.time_avg + self.eps_val)
 
 
@@ -317,14 +320,16 @@ class AverageMeterTimePyTorchGPU(object):
     """
     This class is intended to profile the processing time
     """
-    def __init__(self, _warmup: int = 0) -> None:
+    def __init__(self, _time_scale_factor: float = 1.0, _warmup: int = 0) -> None:
         """
         :param int _warmup: A number of times for warming up.
         """
         super(AverageMeterTimePyTorchGPU, self).__init__()
+        self.time_scale_factor = _time_scale_factor
         self.warmup = _warmup
         self.cnt_call = 0
         self.time_len = 0
+        self.time_last = 0.0
         self.time_sum = 0.0
         self.time_avg = 0.0
         self.fps_avg = 0.0
@@ -344,9 +349,10 @@ class AverageMeterTimePyTorchGPU(object):
             self._update()
 
     def _update(self) -> None:
-        self.time_len = (self.cnt_call - self.warmup)
-        self.time_sum += self.starter.elapsed_time(self.ender) / 1e3
-        self.time_avg = (self.time_sum / self.time_len)
+        self.time_len = self.cnt_call - self.warmup
+        self.time_last = self.time_scale_factor * self.starter.elapsed_time(self.ender) / 1e3
+        self.time_sum += self.time_last
+        self.time_avg = self.time_sum / self.time_len
         self.fps_avg = 1 / (self.time_avg + self.eps_val)
 
     def _synchronize_gpu(self) -> None:

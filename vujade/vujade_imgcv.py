@@ -20,6 +20,85 @@ from multiprocessing.queues import Queue
 from typing import Optional, Set, Union
 from vujade import vujade_multiprocess as multiprocess_
 from vujade import vujade_path as path_
+from vujade.vujade_debug import printd
+
+
+class Transform(object):
+    @staticmethod
+    def quad(_ndarr_img: np.ndarray, _dsize: tuple, _quad_src: np.ndarray, _flags: int = cv2.INTER_LINEAR, _borderMode: int = cv2.BORDER_REFLECT, _borderValue: int = 0) -> tuple:
+        quad_dst = np.asarray([[0, 0], [0, _dsize[0] - 1], [_dsize[1] - 1, _dsize[0] - 1], [_dsize[1] - 1, 0]], dtype=np.float32)
+        matrix_perspective = cv2.getPerspectiveTransform(_quad_src, quad_dst).astype(np.float32)
+        return cv2.warpPerspective(
+            src=_ndarr_img,
+            M=matrix_perspective,
+            dsize=_dsize,
+            flags=_flags,
+            borderMode=_borderMode,
+            borderValue=_borderValue
+        ), matrix_perspective
+
+    @staticmethod
+    def rotate(_ndarr_img: np.ndarray, _degree: float, _flags: int = cv2.INTER_LINEAR, _borderMode: int = cv2.BORDER_REFLECT, _borderValue: int = 0) -> np.ndarray:
+        """
+        Reference:
+            i)  https://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#void%20warpAffine(InputArray%20src,%20OutputArray%20dst,%20InputArray%20M,%20Size%20dsize,%20int%20flags,%20int%20borderMode,%20const%20Scalar&%20borderValue)
+            ii) http://kocw-n.xcache.kinxcdn.com/data/document/2021/kumoh/leehaeyeoun0824/20.pdf
+        """
+        ndarr_img_height, ndarr_img_width, _ = _ndarr_img.shape
+        mat_affine = cv2.getRotationMatrix2D((ndarr_img_width // 2, ndarr_img_height // 2), _degree, 1.0)
+        return cv2.warpAffine(
+            src=_ndarr_img,
+            M=mat_affine,
+            dsize=(ndarr_img_width, ndarr_img_height),
+            flags=_flags,
+            borderMode=_borderMode,
+            borderValue=_borderValue
+        )
+
+    @staticmethod
+    def warp(_ndarr_pts_src: np.ndarray, _matrix: np.ndarray, _is_normalize: bool = True):
+        if _ndarr_pts_src.ndim != 2:
+            raise ValueError('The _ndarr_pts_src.ndim should be 2.')
+
+        if _matrix.ndim != 2:
+            raise ValueError('The _matrix.ndim should be 2.')
+
+        ndarr_pts_3d = np.concatenate((_ndarr_pts_src, np.ones(shape=(_ndarr_pts_src.shape[0], 1), dtype=np.float32)), axis=1)
+        ndarr_pts_dst = _matrix @ ndarr_pts_3d.T
+
+        if _is_normalize is True:
+            ndarr_pts_dst[0, :] /= ndarr_pts_dst[2, :]
+            ndarr_pts_dst[1, :] /= ndarr_pts_dst[2, :]
+
+        return ndarr_pts_dst
+
+    @staticmethod
+    def get_ndarr_vector(_ndarr_src: np.ndarray, _ndarr_dst: np.ndarray, _is_left_handed: bool = False):
+        if (_ndarr_src.ndim != 2) or (_ndarr_dst.ndim != 2):
+            raise NotImplementedError('The both _ndarr_src.ndim and _ndarr_dst.ndim should be 2.')
+
+        res = _ndarr_dst - _ndarr_src
+        if _is_left_handed is True:
+            res[:, 1] *= -1
+
+        return res
+
+    @staticmethod
+    def get_rotation_matrix_2d(_radian: float, _is_negative: bool = False) -> np.ndarray:
+        res = np.asarray([[np.cos(_radian), -np.sin(_radian)], [np.sin(_radian), np.cos(_radian)]], dtype=np.float32)
+        if _is_negative is True:
+            res *= np.asarray([[1, -1], [-1, 1]])
+
+        return res
+
+    @staticmethod
+    def rotate_pts_from_anchor(_ndarr_src: np.ndarray, _ndarr_anchor: np.ndarray, _ndarr_matrix_rotation: np.ndarray) -> np.ndarray:
+        if (_ndarr_src.ndim != 2) or (_ndarr_anchor.ndim != 2) or (_ndarr_matrix_rotation.ndim != 2):
+            raise NotImplementedError('The _ndarr_src.ndim, _ndarr_anchor.ndim and _ndarr_matrix_rotation.ndim should be 2.')
+        if (_ndarr_src.shape[0] != 2) or (_ndarr_anchor.shape[0] != 2):
+            raise ValueError('The both _ndarr_src.shape[0] and _ndarr_anchor.shape[0] should be 2.')
+
+        return _ndarr_anchor + (_ndarr_matrix_rotation @ (_ndarr_src - _ndarr_anchor))
 
 
 def get_color_code_bgr(_name_color: Optional[str] = None) -> Union[dict, tuple]:
