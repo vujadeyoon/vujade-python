@@ -25,7 +25,7 @@ from vujade.vujade_debug import printd
 
 class Transform(object):
     @staticmethod
-    def quad(_ndarr_img: np.ndarray, _dsize: tuple, _quad_src: np.ndarray, _flags: int = cv2.INTER_LINEAR, _borderMode: int = cv2.BORDER_REFLECT, _borderValue: int = 0) -> tuple:
+    def quad(_ndarr_img: np.ndarray, _dsize: tuple, _quad_src: np.ndarray, _flags: int = cv2.INTER_LINEAR, _borderMode: int = cv2.BORDER_REFLECT, _borderValue: tuple = (0, 0, 0)) -> tuple:
         quad_dst = np.asarray([[0, 0], [0, _dsize[0] - 1], [_dsize[1] - 1, _dsize[0] - 1], [_dsize[1] - 1, 0]], dtype=np.float32)
         matrix_perspective = cv2.getPerspectiveTransform(_quad_src, quad_dst).astype(np.float32)
         return cv2.warpPerspective(
@@ -38,7 +38,7 @@ class Transform(object):
         ), matrix_perspective
 
     @staticmethod
-    def rotate(_ndarr_img: np.ndarray, _degree: float, _flags: int = cv2.INTER_LINEAR, _borderMode: int = cv2.BORDER_REFLECT, _borderValue: int = 0) -> np.ndarray:
+    def rotate(_ndarr_img: np.ndarray, _degree: float, _flags: int = cv2.INTER_LINEAR, _borderMode: int = cv2.BORDER_REFLECT, _borderValue: tuple = (0, 0, 0)) -> np.ndarray:
         """
         Reference:
             i)  https://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#void%20warpAffine(InputArray%20src,%20OutputArray%20dst,%20InputArray%20M,%20Size%20dsize,%20int%20flags,%20int%20borderMode,%20const%20Scalar&%20borderValue)
