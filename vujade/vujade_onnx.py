@@ -12,7 +12,7 @@ import torch
 import onnx
 import onnxruntime
 import numpy as np
-from typing import Union
+from typing import Optional, Union
 from onnxsim import simplify
 from vujade import vujade_path as path_
 from vujade.vujade_debug import printd
@@ -51,15 +51,15 @@ class ONNX(object):
     @classmethod
     def pytorch2onnx(
             cls,
-            _model,                                                                         # model being run
-            _tensor_inputs: torch.Tensor,                                                   # model input (or a tuple for multiple inputs)
-            _spath_onnx: str,                                                               # where to save the model (can be a file or file-like object)
-            _is_export_params: bool = True,                                                 # store the trained parameter weights inside the model file
-            _opset_version: int = 10,                                                       # the ONNX version to export the model to
-            _is_do_constant_folding: bool = True,                                           # whether to execute constant folding for optimization
-            _input_names: Union[list, tuple] = ('input', ),                                 # the model's input names
-            _output_names: Union[list, tuple] = ('output', ),                               # the model's output names
-            _dynamic_axes: dict = {'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}, # variable length axes
+            _model,                                           # model being run
+            _tensor_inputs: torch.Tensor,                     # model input (or a tuple for multiple inputs)
+            _spath_onnx: str,                                 # where to save the model (can be a file or file-like object)
+            _is_export_params: bool = True,                   # store the trained parameter weights inside the model file
+            _opset_version: int = 10,                         # the ONNX version to export the model to
+            _is_do_constant_folding: bool = True,             # whether to execute constant folding for optimization
+            _input_names: Union[list, tuple] = ('input', ),   # the model's input names
+            _output_names: Union[list, tuple] = ('output', ), # the model's output names
+            _dynamic_axes: Optional[dict] = None,             # variable length axes
             _is_simplify: bool = True
     ) -> None:
         path_onnx = path_.Path(_spath_onnx)

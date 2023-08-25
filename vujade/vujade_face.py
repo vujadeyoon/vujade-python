@@ -430,8 +430,8 @@ class FaceAlginmenFast(object):
             _ndarr_img: np.ndarray,
             _det,
             _ndarr_lmks: np.ndarray,
-            _output_size: int = 1024,
-            _scaling_ratio_quad_offset: float = 0.2,
+            _dsize_output: tuple = (1024, 1024),
+            _scaling_ratio_quad_offset: float = 0.3,
             _borderValue: tuple = (255, 255, 255)
             ) -> tuple:
         if _ndarr_lmks.ndim != 2:
@@ -491,7 +491,7 @@ class FaceAlginmenFast(object):
 
         ndarr_img_aligned, matrix_perspective = imgcv_.Transform.quad(
             _ndarr_img=_ndarr_img,
-            _dsize=(_output_size, _output_size),
+            _dsize=_dsize_output,
             _quad_src=(ndarr_bbox_quad + 0.5).astype(np.float32),
             _borderMode=cv2.BORDER_CONSTANT,
             _borderValue=_borderValue
@@ -499,7 +499,16 @@ class FaceAlginmenFast(object):
         ndarr_bbox = imgcv_.Transform.warp(_ndarr_pts_src=ndarr_bbox, _matrix=matrix_perspective, _is_normalize=True)
         ndarr_lmks = imgcv_.Transform.warp(_ndarr_pts_src=ndarr_lmks, _matrix=matrix_perspective, _is_normalize=True)
 
-        return ndarr_img_aligned, ndarr_bbox[:2, :].T, ndarr_lmks[:2, :].T
+        ndarr_bbox = ndarr_bbox[:2, :].T.astype(np.int64)
+        ndarr_lmks = ndarr_lmks[:2, :].T.astype(np.int64)
+
+        # Clip
+        ndarr_bbox[:, 0] = np.clip(ndarr_bbox[:, 0], a_min=0, a_max=_dsize_output[0] - 1)
+        ndarr_bbox[:, 1] = np.clip(ndarr_bbox[:, 1], a_min=0, a_max=_dsize_output[1] - 1)
+        ndarr_lmks[:, 0] = np.clip(ndarr_lmks[:, 0], a_min=0, a_max=_dsize_output[0] - 1)
+        ndarr_lmks[:, 1] = np.clip(ndarr_lmks[:, 1], a_min=0, a_max=_dsize_output[1] - 1)
+
+        return ndarr_img_aligned, ndarr_bbox, ndarr_lmks
 
     @staticmethod
     def _get_scaled_bbox_quad(_ndarr_bbox_quad: np.ndarray, _scaling_ratio_offset: float = 1.0) -> np.ndarray:

@@ -98,7 +98,7 @@ class _BaseSimpleLog(object):
 class SimpleLog(object):
     """
     Usage:
-        export PATH_LOG="./log/debug.log"
+        export PATH_LOG='./log/debug.log'
         from vujade import vujade_logger as loggger_
         loggger_.SimpleLog.d(_tag='TAG', _message='MESSAGE')
     """
@@ -197,7 +197,7 @@ class Logger(object):
     def get_logger(self):
         self.logger = logging.getLogger(name=__name__)
         self.logger.setLevel(level=self.level)
-        self.logger_warnings = logging.getLogger("py.warnings")
+        self.logger_warnings = logging.getLogger('py.warnings')
         self._set_handler()
 
         return self.logger
