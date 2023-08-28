@@ -3,22 +3,50 @@ Dveloper: vujadeyoon
 Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
-Title: vujade_tflite.py
-Description: A module for TFLite
+Title: vujade_tensorflow.py
+Description: A module for TensorFlow
 """
 
 
-import numpy as np
+import onnx
 import tflite_runtime
+import numpy as np
+import tensorflow as tf
 import tflite_runtime.interpreter as tflite
 from typing import List, Optional
+from onnx_tf.backend import prepare
 from vujade import vujade_path as path_
+from vujade import vujade_utils as utils_
 from vujade.vujade_debug import printd
 
 
-class InferenceTFLite(object):
+class TensorFlow(object):
+    def __init__(self) -> None:
+        super(TensorFlow, self).__init__()
+
+    @staticmethod
+    def onnx2tf(_spath_dir_tf: str, _model_onnx: onnx.onnx_ml_pb2.ModelProto) -> None:
+        path_dir_tf = path_.Path(_spath_dir_tf)
+
+        path_dir_tf.path.mkdir(mode=0o755, parents=True, exist_ok=True)
+        tf_rep = prepare(_model_onnx)
+        tf_rep.export_graph(path_dir_tf.str)
+
+    @staticmethod
+    def load(_spath_dir_tf: str, _is_trainable: bool = False):
+        model_tf = tf.saved_model.load(_spath_dir_tf)
+        model_tf.trainable = _is_trainable
+        return model_tf
+
+    @staticmethod
+    def run(_ndarr_input: np.ndarray, _model_tf) -> dict:
+        input_tensor = tf.convert_to_tensor(_ndarr_input)
+        return _model_tf(**{'input': input_tensor})
+
+
+class TensorFlowLite(object):
     def __init__(self, _spath_tflite: str, _experimental_delegates: Optional[list] = None, _num_threads: int = 1) -> None:
-        super(InferenceTFLite, self).__init__()
+        super(TensorFlowLite, self).__init__()
         self.path_tflite = path_.Path(_spath_tflite)
         self.experimental_delegates = _experimental_delegates
         self.num_threads = _num_threads
@@ -77,3 +105,34 @@ class InferenceTFLite(object):
 
     def _invoke(self) -> None:
         self.interpreter.invoke()
+
+    @classmethod
+    def tf2tflite(cls, _spath_dir_tf: str) -> bytes:
+        converter = tf.lite.TFLiteConverter.from_saved_model(_spath_dir_tf)
+        model_tflite = converter.convert()
+
+        return model_tflite
+
+    @staticmethod
+    def save(_spath_tflite: str, _model_tflite: bytes) -> None:
+        with open(_spath_tflite, 'wb') as f:
+            f.write(_model_tflite)
+
+    @classmethod
+    def is_gpu_compatibility(cls, _model_tflite: bytes) -> bool:
+        str_analyzed = cls.analyze(_model_tflite=_model_tflite, _is_gpu_compatibility=True, _is_print=False)
+        if 'GPU COMPATIBILITY WARNING' not in str_analyzed:
+            res = True
+        else:
+            res = False
+
+        return res
+
+    @staticmethod
+    def analyze(_model_tflite: bytes, _is_gpu_compatibility: bool = True, _is_print: bool = True) -> str:
+        utils_.CapturePrint.lock()
+        tf.lite.experimental.Analyzer.analyze(model_content=_model_tflite, gpu_compatibility=_is_gpu_compatibility)
+        str_captured = utils_.CapturePrint.run(_is_unlock=True)
+        if _is_print is True:
+            print(str_captured)
+        return str_captured

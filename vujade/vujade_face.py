@@ -18,7 +18,7 @@ from typing import Optional
 from vujade import vujade_download as download_
 from vujade import vujade_imgcv as imgcv_
 from vujade import vujade_path as path_
-from vujade.vujade_debug import printd
+from vujade.vujade_debug import printd, pprintd
 
 
 class DLIB(object):
@@ -171,7 +171,7 @@ class DLIB(object):
     def quad2bbox(_ndarr_bbox_quad: np.ndarray) -> np.ndarray:
         if _ndarr_bbox_quad.shape != (4, 2):
             raise ValueError('The _ndarr_bbox_quad.shape should be (4, 2).')
-        return _ndarr_bbox_quad[0::2, :].astype(np.int64)
+        return _ndarr_bbox_quad[0::2, :]
 
     @classmethod
     def bbox2quad(cls, _ndarr_bbox: np.ndarray) -> np.ndarray:
@@ -443,9 +443,9 @@ class FaceAlginmenFast(object):
             pt_left, pt_top, pt_right, pt_bottom = DLIB.rect2tuple(_det=_det)
 
         ndarr_img_hegiht, ndarr_img_width, ndarr_img_channel = _ndarr_img.shape
-        ndarr_bbox = DLIB.tuple2bbox(_pts=(pt_left, pt_top, pt_right, pt_bottom))
+        ndarr_bbox = DLIB.tuple2bbox(_pts=(pt_left, pt_top, pt_right, pt_bottom)).astype(np.float32)
         ndarr_bbox_quad = cls._get_scaled_bbox_quad(_ndarr_bbox_quad=DLIB.bbox2quad(_ndarr_bbox=ndarr_bbox), _scaling_ratio_offset=_scaling_ratio_quad_offset)
-        ndarr_lmks = _ndarr_lmks.copy()
+        ndarr_lmks = _ndarr_lmks.astype(np.float32).copy()
 
         vec_hori_eye_left = imgcv_.Transform.get_ndarr_vector(_ndarr_src=ndarr_lmks[36, :].reshape(1, -1), _ndarr_dst=ndarr_lmks[39, :].reshape(1, -1), _is_left_handed=True).reshape(-1)
         vec_hori_eye_right = imgcv_.Transform.get_ndarr_vector(_ndarr_src=ndarr_lmks[42, :].reshape(1, -1), _ndarr_dst=ndarr_lmks[45, :].reshape(1, -1), _is_left_handed=True).reshape(-1)
@@ -462,13 +462,13 @@ class FaceAlginmenFast(object):
             _ndarr_src=ndarr_bbox.T,
             _ndarr_anchor=np.mean(ndarr_bbox, axis=0).reshape(-1, 1),
             _ndarr_matrix_rotation=ndarr_mat_rot
-        ).astype(np.int64).T
+        ).T
         ndarr_bbox_quad = cls._adjust_bbox_quad(
             _ndarr_bbox_quad=imgcv_.Transform.rotate_pts_from_anchor(
                 _ndarr_src=ndarr_bbox_quad.T,
                 _ndarr_anchor=np.mean(ndarr_bbox_quad, axis=0).reshape(-1, 1),
                 _ndarr_matrix_rotation=ndarr_mat_rot
-                ).astype(np.int64).T,
+                ).T,
             _ndarr_bbox_quad_center_dst=np.mean((ndarr_lmks[27, :], ndarr_lmks[28, :]), axis=0)
         )
 
@@ -496,6 +496,7 @@ class FaceAlginmenFast(object):
             _borderMode=cv2.BORDER_CONSTANT,
             _borderValue=_borderValue
         )
+
         ndarr_bbox = imgcv_.Transform.warp(_ndarr_pts_src=ndarr_bbox, _matrix=matrix_perspective, _is_normalize=True)
         ndarr_lmks = imgcv_.Transform.warp(_ndarr_pts_src=ndarr_lmks, _matrix=matrix_perspective, _is_normalize=True)
 
@@ -515,7 +516,7 @@ class FaceAlginmenFast(object):
         _, _, bbox_length_diag = DLIB.get_bbox_length(_ndarr_bbox=DLIB.quad2bbox(_ndarr_bbox_quad=_ndarr_bbox_quad))
         quad_offset = _scaling_ratio_offset * bbox_length_diag
         ndarr_bbox_quad_offset = quad_offset * np.asarray([[-1, -1], [-1, 1], [1, 1], [1, -1]]).astype(np.float32)
-        return _ndarr_bbox_quad +ndarr_bbox_quad_offset
+        return (_ndarr_bbox_quad + ndarr_bbox_quad_offset).astype(np.float32)
 
     @staticmethod
     def _adjust_bbox_quad(_ndarr_bbox_quad: np.ndarray, _ndarr_bbox_quad_center_dst: np.ndarray) -> np.ndarray:

@@ -11,6 +11,7 @@ Acknowledgement: This implementation is highly inspired from Berkeley CS188.
 
 
 import sys
+import io
 import getpass
 import inspect
 import heapq
@@ -110,6 +111,33 @@ def get_stdout_stderr(_command: str) -> tuple:
 
 def system_stdout(_str: str) -> None:
     sys.stdout.write('\r'+_str)
+
+
+class CapturePrint(object):
+    """
+    Usage:
+        CapturePrint.lock()
+        print('Test')
+        str_captured = CapturePrint.run(_is_unlock=True)
+        print('Captured str.: {}'.format(str_captured))
+    """
+    capturer = io.StringIO()
+    stdout_ori = sys.stdout
+
+    @classmethod
+    def lock(cls) -> None:
+        sys.stdout = cls.capturer
+
+    @classmethod
+    def unlock(cls) -> None:
+        sys.stdout = cls.stdout_ori
+
+    @classmethod
+    def run(cls, _is_unlock: bool = True) -> str:
+        res = cls.capturer.getvalue().rstrip()
+        if _is_unlock is True:
+            cls.unlock()
+        return res
 
 
 class SystemCommand(object):

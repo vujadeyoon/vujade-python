@@ -11,6 +11,7 @@ Description: A module for debug
 import os
 import re
 import traceback
+from typing import Any, Optional
 
 
 class DEBUG(object):
@@ -43,9 +44,11 @@ class DEBUG(object):
             'BLUE': '\033[94m',
             'GREEN': '\033[92m',
             'RED': '\033[91m',
+            'WHITE': '\033[97m',
             'YELLOW': '\033[93m',
             'FATAL': '\033[91m',
             'WARNING': '\033[93m',
+            'DEFAULT': '\033[0m',
             'ENDC': '\033[0m',
             'BOLD': '\033[1m',
             'UNDERLINE': '\033[4m'
@@ -86,6 +89,69 @@ def printd(*_args, **_kwargs) -> str:
     info_str = ''
     for _idx, _arg in enumerate(_args):
         info_str += '{} '.format(_arg)
+    info_str = info_str.rstrip(' ')
+
+    info_traced = '[{}:{}] '.format(debug_info.fileName, debug_info.lineNumber) + info_str
+
+    info_traced_colored = encode_color(info_traced, **_kwargs)
+
+    if ('_is_pause' in _kwargs.keys()) and (_kwargs['_is_pause'] is False):
+        _print = print
+    else:
+        _print = input
+
+    if ('_is_print' in _kwargs.keys()) and (_kwargs['_is_print'] is False):
+        pass
+    else:
+        _print(info_traced_colored)
+
+    return info_traced_colored
+
+
+def pprintd(_data: Any, _str_prefix: Optional[str] = None, **_kwargs) -> str:
+    debug_info = DEBUG()
+    debug_info.get_file_line()
+
+    if _str_prefix is None:
+        _str_prefix = ''
+    elif isinstance(_str_prefix, str):
+        _str_prefix += ' '
+    else:
+        pass
+
+    info_str = _str_prefix
+
+    # type(_data)
+    try:
+        info_str += '{} '.format(type(_data))
+    except Exception as e:
+        pass
+
+    # len(_data)
+    try:
+        if isinstance(_data, list):
+            info_str += '{} '.format(len(_data))
+    except Exception as e:
+        pass
+
+    # _data.shape
+    try:
+        info_str += '{} '.format(_data.shape)
+    except Exception as e:
+        pass
+
+    # _data.dtype
+    try:
+        info_str += '{} '.format(_data.dtype)
+    except Exception as e:
+        pass
+
+    # _data.device
+    try:
+        info_str += '{} '.format(_data.device)
+    except Exception as e:
+        pass
+
     info_str = info_str.rstrip(' ')
 
     info_traced = '[{}:{}] '.format(debug_info.fileName, debug_info.lineNumber) + info_str

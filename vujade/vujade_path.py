@@ -68,7 +68,7 @@ class Path(object):
     def rmdir(self) -> None:
         self.path.rmdir()
 
-    def rmtree(self, _ignore_errors: bool = False, _onerror:Optional[set] = None) -> None:
+    def rmtree(self, _ignore_errors: bool = False, _onerror: Optional[set] = None) -> None:
         if self.path.is_dir() is True:
             try:
                 shutil.rmtree(path=self.str, ignore_errors=_ignore_errors, onerror=_onerror)
