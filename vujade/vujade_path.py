@@ -17,9 +17,12 @@ from typing import Union, List, Tuple, Optional
 
 
 class Path(object):
-    def __init__(self, _spath: str):
+    def __init__(self, _spath: str, _is_absolute: bool = False):
         super(Path, self).__init__()
-        self.__spath = _spath
+        if _is_absolute is True:
+            self.__spath = os.path.abspath(_spath)
+        else:
+            self.__spath = _spath
         self.name = self.path.stem
         self.ext = self.path.suffix
         self.filename = self.name + self.ext
@@ -48,9 +51,12 @@ class Path(object):
     def replace_ext(self, _new: str):
         return self.replace(_old=self.ext, _new=_new)
 
-    def move(self, _spath_dst: str) -> None:
+    def move(self, _spath_dir_dst: str) -> None:
+        path_file_dst = Path(os.path.join(_spath_dir_dst, self.filename))
+        path_file_dst.unlink(_missing_ok=True)
+
         try:
-            shutil.move(src=self.str, dst=_spath_dst)
+            shutil.move(src=self.str, dst=path_file_dst.str)
         except Exception as e:
             raise OSError('The file move is failed.: {}'.format(e))
 
@@ -84,6 +90,20 @@ class Path(object):
 
         return len(list(self.path.rglob('*')))
 
+    def glob(self, _patterns: tuple = ('*', )) -> list:
+        res = list()
+        for _idx, _pattern in enumerate(_patterns):
+            res.extend(list(self.path.glob(pattern=_pattern)))
+
+        return list(map(str, res))
+
+    def rglob(self, _patterns: tuple = ('*', )) -> list:
+        res = list()
+        for _idx, _pattern in enumerate(_patterns):
+            res.extend(list(self.path.rglob(pattern=_pattern)))
+
+        return list(map(str, res))
+
 
 def export_pythonpath(self, _spath: str) -> None:
     sys.path.append(_spath) # site.addsitedir(sitedir=_spath)
@@ -107,3 +127,4 @@ def get_file_name_ext(_spath: str, _type_return: str = 'split') -> Union[str, Tu
 
 def get_glob(_spath: str, _file_ext: str) -> List[str]:
     return glob.glob('{}/*{}'.format(_spath.replace('[', '[[]'), _file_ext))
+
