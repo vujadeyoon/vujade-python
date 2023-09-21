@@ -1,4 +1,12 @@
-# Vujade-Python
+<h1 align="center">
+<img src="asset/logo/primary/logo.png" width="800">
+</h1><br>
+
+
+[![PyPI](https://img.shields.io/pypi/v/vujade?label=pypi%20package)](https://pypi.org/project/vujade/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/vujade.svg?label=PyPI%20downloads)](
+https://pypi.org/project/vujade/)
+
 
 
 ## Table of contents
@@ -20,9 +28,26 @@
 
 ## 2. How to install Vujade for Python <a name="how_to_install"></a>
 - Please note that some Python3 packages should be required. You can install the rquired packages using Python3 official package manager, pip3.
+- Please note that the pip3 based vujade has not fully supported all features yet.
+### 1. How to install vujade using pip3 from the PyPI
+```bash
+$ pip3 install vujade
+```
+
+### 2. How to install vujade using pip3 from the GitHub repository
+```bash
+$ pip3 install git+https://github.com/vujadeyoon/vujade-python@${name_tag}
+```
+
+### 3. How to install vujade using pip3 from local repository
+```bash
+$ pip3 install -e .
+```
+
+### 4. How to merge vujade
 ```bash
 $ git clone https://github.com/vujadeyoon/vujade-python vujade-python
-$ cd ./vujade-python/ && bash ./bash_setup_vujade.sh && cd ../
+$ cd ./vujade-python/ && bash ./script/bash_setup_vujade.sh && cd ../
 ```
 
 
