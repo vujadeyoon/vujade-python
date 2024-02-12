@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #
-# Dveloper: vujadeyoon
+# Developer: vujadeyoon
 # Email: vujadeyoon@gmail.com
 # Github: https://github.com/vujadeyoon/vujade
 #

@@ -1,5 +1,5 @@
 """
-Dveloper: vujadeyoon
+Developer: vujadeyoon
 Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
@@ -14,6 +14,7 @@ import sys
 import pathlib
 import shutil
 from typing import Union, List, Tuple, Optional
+from vujade.vujade_debug import printd, pprintd
 
 
 class Path(object):
@@ -51,12 +52,15 @@ class Path(object):
     def replace_ext(self, _new: str):
         return self.replace(_old=self.ext, _new=_new)
 
-    def move(self, _spath_dir_dst: str) -> None:
-        path_file_dst = Path(os.path.join(_spath_dir_dst, self.filename))
-        path_file_dst.unlink(_missing_ok=True)
+    def move(self, _spath_dst: str) -> None:
+        path_dst = Path(_spath_dst)
+
+        if path_dst.path.is_dir() is True:
+            path_dst = Path(os.path.join(path_dst.str, self.filename))
+            path_dst.unlink(_missing_ok=True)
 
         try:
-            shutil.move(src=self.str, dst=path_file_dst.str)
+            shutil.move(src=self.str, dst=path_dst.str)
         except Exception as e:
             raise OSError('The file move is failed.: {}'.format(e))
 

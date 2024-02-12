@@ -1,5 +1,5 @@
 """
-Dveloper: vujadeyoon
+Developer: vujadeyoon
 Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
@@ -47,7 +47,7 @@ setup(
     packages=find_packages(exclude=[]),
     install_requires=['Cython', 'numpy', 'wheel'],
     keywords=['vujade-python', 'vujade'],
-    python_requires='>=3.8',
+    python_requires='>=3.7',
     package_data={},
     zip_safe=False,
     classifiers=[
@@ -57,6 +57,7 @@ setup(
         'Natural Language :: English',
 
         # Supported python versions
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',

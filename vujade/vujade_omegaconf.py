@@ -1,5 +1,5 @@
 """
-Dveloper: vujadeyoon
+Developer: vujadeyoon
 Email: vujadeyoon@gmail.com
 Github: https://github.com/vujadeyoon/vujade
 
@@ -11,10 +11,13 @@ Description: A module for OmegaConf
 import omegaconf
 from omegaconf import OmegaConf as _OmeagaConf
 from typing import Any, Optional, Union
+from vujade import vujade_random as random_
 from vujade.vujade_debug import printd
 
 
 class OmegaConf(object):
+    delimiter = random_.get_random_string(_num_len_str=5)
+
     @classmethod
     def load(cls, _spath_filename: str, _is_interpolation: bool = False) -> Union[dict, omegaconf.dictconfig.DictConfig]:
         cfg = _OmeagaConf.load(_spath_filename)
@@ -28,13 +31,13 @@ class OmegaConf(object):
 
         return res
 
-    @staticmethod
-    def cfg2dict(_res: dict, _cfg: omegaconf.dictconfig.DictConfig, _key_recursived: Optional[str] = None) -> None:
+    @classmethod
+    def cfg2dict(cls, _res: dict, _cfg: omegaconf.dictconfig.DictConfig, _key_recursived: Optional[str] = None) -> None:
         for _idx, (_key, _val) in enumerate(_cfg.items()):
             if _key_recursived is None:
                 key_recursived = _key
             else:
-                key_recursived = '{}.{}'.format(_key_recursived, _key)
+                key_recursived = '{}{}{}'.format(_key_recursived, cls.delimiter, _key)
 
             if isinstance(_val, omegaconf.dictconfig.DictConfig) is True:
                 OmegaConf.cfg2dict(_res=_res, _cfg=_val, _key_recursived=key_recursived)
@@ -56,9 +59,9 @@ class OmegaConf(object):
             error_traced = str(printd(e, _is_print=False, _is_pause=False))
             raise UserWarning(error_traced)
 
-    @staticmethod
-    def _update_dict(_key: str, _val: Any, _dict: dict) -> None:
-        keys = _key.split('.')
+    @classmethod
+    def _update_dict(cls, _key: str, _val: Any, _dict: dict) -> None:
+        keys = _key.split(cls.delimiter)
         dict_recursived = _dict
 
         for _idx, _key in enumerate(keys):
