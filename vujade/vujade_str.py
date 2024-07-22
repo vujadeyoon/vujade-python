@@ -11,7 +11,11 @@ Description: A module for string
 import argparse
 import ast
 import json
-from typing import Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union
+
+
+def str2any(_str: str) -> Any:
+    return ast.literal_eval(_str)
 
 
 def str2num(_str_num: str, _func_cast_num: type = int) -> Union[int, float]:
@@ -71,22 +75,6 @@ def str2dict_v3(_str: str) -> dict:
     return json.loads(_str)
 
 
-def str2dict_v4(_str: str) -> dict:
-    return ast.literal_eval(_str)
-
-
-def str2bool(_v: Union[str, bool]) -> bool:
-    # This function is equivalent to the built-in function, bool(strtobool()), in the distutils.util.
-    if isinstance(_v, bool):
-       return _v
-    if _v.lower() in ('yes', 'true', 't', 'y', '1'):
-        return True
-    elif _v.lower() in ('no', 'false', 'f', 'n', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-
-
 def str2tuple(_str: str) -> tuple:
     if isinstance(_str, str):
         return tuple(_str.replace(' ', '').replace('(', '').replace(')', '').split(','))
@@ -99,10 +87,6 @@ def str2list_v1(_str: str) -> list:
         return _str.replace(' ', '').replace('[', '').replace(']', '').split(',')
     else:
         raise argparse.ArgumentTypeError('The argument should be string.')
-
-
-def str2list_v2(_str: str) -> list:
-    return ast.literal_eval(_str)
 
 
 def list2str(_list_str: list) -> str:

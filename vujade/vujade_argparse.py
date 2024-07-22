@@ -8,6 +8,37 @@ Description: A module for argparse
 """
 
 
+import argparse
+import ast
+from typing import Union
+
+
+class ArgumentHandler(object):
+    @staticmethod
+    def str2any(_arg: str) -> list:
+        if isinstance(_arg, (str, )):
+            try:
+                res = ast.literal_eval(_arg)
+            except Exception as e:
+                res = _arg
+        else:
+            res = _arg
+
+        return res
+
+    @staticmethod
+    def str2bool(_v: Union[str, bool]) -> bool:
+        # This function is equivalent to the built-in function, bool(strtobool()), in the distutils.util.
+        if isinstance(_v, (bool, )):
+            return _v
+        if _v.lower() in ('yes', 'true', 't', 'y', '1'):
+            return True
+        elif _v.lower() in ('no', 'false', 'f', 'n', '0'):
+            return False
+        else:
+            raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 class Args(object):
     def __init__(self, _args: dict) -> None:
         super(Args, self).__init__()

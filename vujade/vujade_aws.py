@@ -13,7 +13,8 @@ import sys
 import argparse
 import json
 import boto3
-from typing import Set, Optional
+import torch
+from typing import Any, List, Optional, Set
 from pathlib import Path
 from botocore.exceptions import ClientError
 try:
@@ -23,7 +24,7 @@ try:
     from vujade import vujade_text as text_
     from vujade import vujade_download as download_
     from vujade import vujade_compression as comp_
-    from vujade.vujade_debug import printd
+    from vujade.vujade_debug import printd, pprintd
 except Exception as e:
     sys.path.append(os.path.join(os.getcwd()))
     from vujade import vujade_utils as utils_
@@ -32,7 +33,7 @@ except Exception as e:
     from vujade import vujade_text as text_
     from vujade import vujade_download as download_
     from vujade import vujade_compression as comp_
-    from vujade.vujade_debug import printd
+    from vujade.vujade_debug import printd, pprintd
 
 
 def get_aws_mode_base() -> Set[str]:
@@ -45,6 +46,26 @@ def get_aws_mode_s3() -> Set[str]:
 
 def get_aws_mode_stepfunctions() -> Set[str]:
     return get_aws_mode_base() | {'all'}
+
+
+class AWSNeuron(object):
+    @staticmethod
+    def analyze(_model: Any, _example_inputs: List[torch.tensor]) -> None:
+        torch.neuron.analyze_model(_model, example_inputs=_example_inputs)
+
+    @staticmethod
+    def trace(_model: Any, _example_inputs: List[torch.tensor]) -> torch.jit._trace.TopLevelTracedModule:
+        model_neuron = torch.neuron.trace(_model, example_inputs=_example_inputs)
+        return model_neuron
+
+    @staticmethod
+    def save(_model_neuron: torch.jit._trace.TopLevelTracedModule, _spath_model_neuron: str) -> None:
+        _model_neuron.save(_spath_model_neuron)
+
+    @staticmethod
+    def load(_spath_model_neuron: str) -> torch.jit._trace.TopLevelTracedModule:
+        model_neuron = torch.jit.load(_spath_model_neuron)
+        return model_neuron
 
 
 class BaseAWS(object):

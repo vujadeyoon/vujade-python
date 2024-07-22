@@ -9,8 +9,8 @@ Description: A main python script to encrypt or decrypt files in a directory.
 
 
 import argparse
+from vujade import vujade_argparse as argparse_
 from vujade import vujade_cryptography as crypto_
-from vujade import vujade_str as str_
 
 
 def get_args() -> argparse.Namespace:
@@ -21,7 +21,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('--path_root_encrypt', type=str, default='./encrypt')
     parser.add_argument('--path_root_decrypt', type=str, default='./decrypt')
     parser.add_argument('--path_root_key', type=str, default='./key')
-    parser.add_argument('--is_to_bytes', type=str_.str2bool, default=False)
+    parser.add_argument('--is_to_bytes', type=argparse_.ArgumentsHandler.str2bool, default=False)
 
     args = parser.parse_args()
 
